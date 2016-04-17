@@ -31,3 +31,12 @@
 
 # "temporary" build files
 /target
+
+# IDEA
+# ----
+.idea
+.shelf
+/*.iml
+/*.ipr
+/*.iws
+/out
