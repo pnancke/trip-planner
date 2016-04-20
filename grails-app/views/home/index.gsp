@@ -5,9 +5,22 @@
     <title>Trip Planner</title>
 </head>
 
-<body>
+<body onload="init();">
 <header></header>
-
+<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+<script>
+    function init() {
+        map = new OpenLayers.Map("basicMap");
+        var mapnik = new OpenLayers.Layer.OSM();
+        map.addLayer(mapnik);
+        map.setCenter(new OpenLayers.LonLat(13.41, 52.52) // Center of the map
+                .transform(
+                        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                        new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
+                ), 15 // Zoom level
+        );
+    }
+</script>
 <g:if test="${flash.message}">
     <div class="message">${flash.message}</div>
 </g:if>
@@ -31,5 +44,7 @@
         <button type="submit" class="standalone-button">Submit</button>
     </form>
 </div>
+
+<div id="basicMap"></div>
 </body>
 </html>

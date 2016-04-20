@@ -112,3 +112,16 @@
 .standalone-button:before {
     content: normal !important;
 }
+
+.searchTown {
+    width: 400px;
+    height: 300px;
+    float: left;
+}
+
+#basicMap {
+    width: 1024px;
+    height: 576px;
+    margin: 0;
+    float: left;
+}
