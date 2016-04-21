@@ -5,11 +5,12 @@
     <title>Trip Planner</title>
 </head>
 
-<body onload="init();">
+<body onload="init();" onresize="resizeMap()">
 <header></header>
 <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 <script>
     function init() {
+        resizeMap();
         map = new OpenLayers.Map("basicMap");
         var mapnik = new OpenLayers.Layer.OSM();
         map.addLayer(mapnik);
@@ -19,6 +20,20 @@
                         new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
                 ), 15 // Zoom level
         );
+    }
+    function resizeMap() {
+        var margin = 20;
+        var sizeOfSearch = 475 + margin;
+        var searchPercentage = sizeOfSearch / window.innerWidth;
+        var mapPercentage = 1 - searchPercentage;
+        var basicMapElem = document.getElementById("basicMap");
+        if (mapPercentage < 0.45) {
+            basicMapElem.style.height = window.innerHeight - 270 + 'px';
+            console.log("map under searchTown-field");
+        } else {
+            basicMapElem.style.width = window.innerWidth * mapPercentage + 'px';
+            basicMapElem.style.height = window.innerHeight - margin + 'px';
+        }
     }
 </script>
 <g:if test="${flash.message}">
@@ -40,9 +55,12 @@
             value="1"
             min="0"
             step="any">
-        <br/><p></p><br/>
+        <br/>
+
+        <p></p><br/>
         <button type="submit" class="standalone-button">Submit</button>
     </form>
+
 </div>
 
 <div id="basicMap"></div>
