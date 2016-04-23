@@ -23,16 +23,18 @@
     }
     function resizeMap() {
         var margin = 20;
-        var sizeOfSearch = 475 + margin;
-        var searchPercentage = sizeOfSearch / window.innerWidth;
+        var searchWidth = 475 + margin;
+        var searchHeight = 270;
+        var searchPercentage = searchWidth / window.innerWidth;
         var mapPercentage = 1 - searchPercentage;
         var basicMapElem = document.getElementById("basicMap");
+        var footerSpace = window.innerHeight * 0.15;
         if (mapPercentage < 0.45) {
-            basicMapElem.style.height = window.innerHeight - 270 + 'px';
+            basicMapElem.style.height = window.innerHeight - searchHeight - footerSpace + 'px';
             console.log("map under searchTown-field");
         } else {
             basicMapElem.style.width = window.innerWidth * mapPercentage + 'px';
-            basicMapElem.style.height = window.innerHeight - margin + 'px';
+            basicMapElem.style.height = window.innerHeight - margin - footerSpace + 'px';
         }
     }
 </script>
