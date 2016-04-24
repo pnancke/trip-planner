@@ -8,13 +8,16 @@
 /* Form text input */
 
 .form-wrapper input {
-    width: 200px;
+    width: 400px;
     height: 20px;
     padding: 10px 5px;
     float: left;
     border: 0;
     background: #eee;
-    border-radius: 3px 0 0 3px;
+    border-radius: 3px 3px 3px 3px;
+}
+.location-verify-color{
+    box-shadow:inset 0 0 1px 1px #d83c3c;
 }
 
 .form-wrapper input:focus {
@@ -128,4 +131,9 @@
     min-height: 100%;
     margin: 0;
     float: left;
+}
+
+/* jQuery Autocomplete items */
+.ui-widget {
+    font-size: 0.8em !important;
 }
