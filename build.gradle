@@ -47,6 +47,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "org.springframework.boot:spring-boot-starter-tomcat"
     compile group: 'com.google.guava', name: 'guava', version: '18.0'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '2.53.0'
     compile "org.grails:grails-dependencies"
     compile "org.grails:grails-web-boot"
     compile "org.grails.plugins:cache"
