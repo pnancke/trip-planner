@@ -13,6 +13,9 @@ class HomePage extends Page {
         destinationSearchField { $(By.id("location-search-destination")) }
         startDropdown(required: false) { $(By.id("ui-id-1")) }
         destinationDropdown(required: false) { $(By.id("ui-id-2")) }
+        submitButton { $(By.id("submit-route-button")) }
+        spinner(required: false) {$(By.className("spinner"))}
+        spinnerWrapper {$(By.id("spinner"))}
     }
 
     static at = {
@@ -29,5 +32,14 @@ class HomePage extends Page {
     List<String> getAutoCompleteText(Navigator autoComplNav) {
         waitFor(10) { autoComplNav.displayed }
         autoComplNav.children()*.text()
+    }
+
+    void clickFirstAutocomplete(Navigator autoComplNav){
+        waitFor(10) { autoComplNav.displayed }
+        autoComplNav.click()
+    }
+
+    boolean spinnerExists() {
+        spinner
     }
 }
