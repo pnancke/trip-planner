@@ -6,6 +6,7 @@
     <asset:javascript src="jquery-1.12.3.min.js"/>
     <asset:javascript src="jquery-ui.min.js"/>
     <asset:javascript src="trip-planner-helper.js"/>
+    <asset:javascript src="spin.js"/>
     <title>Trip Planner</title>
 </head>
 
@@ -36,6 +37,29 @@
             }
         });
     });
+
+    function drawRoute() {
+        getRoute($('#start-longitude').val(), $('#start-latitude').val(),
+                $('#destination-longitude').val(), $('#destination-latitude').val());
+    }
+
+    function getRoute(startLongitude, startLatitude, endLongitude, endLatitude) {
+        startSpinner();
+        $.get('${g.createLink(controller: "home", action: "getRoute")}?startLon=' + startLongitude
+                + '&startLat=' + startLatitude + '&endLon=' + endLongitude + '&endLat=' + endLatitude,
+                {}, function (data) {
+                }).done(function (response) {
+            stopSpinner();
+            var responseJson = JSON.parse(response);
+            if (!responseJson.success) {
+                alert(responseJson.error);
+            } else if (responseJson.data == undefined || responseJson.data == "") {
+                alert("There is no route between the given locations!");
+            } else {
+                drawLine(responseJson.data);
+            }
+        });
+    }
 </script>
 <g:if test="${flash.message}">
     <div class="message">${flash.message}</div>
@@ -70,5 +94,6 @@
 <input type="hidden" id="start-latitude">
 <input type="hidden" id="destination-longitude">
 <input type="hidden" id="destination-latitude">
+<div id="spinner"></div>
 </body>
 </html>
