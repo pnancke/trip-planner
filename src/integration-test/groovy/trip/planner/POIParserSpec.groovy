@@ -20,6 +20,8 @@ class POIParserSpec extends Specification {
     public static final Pair OCEAN_BBOX = new Pair(new Point(2.193275, 54.820783), new Point(2.211038, 54.827618))
     public static final int HUNDRED_SECONDS = 100
 
+    private StopWatch watch = new StopWatch();
+
     def "parsing from osm-xapi works"() {
         given: "a request to the POIApi"
         def api = new POIApi(BERLIN_BBOX)
@@ -45,8 +47,7 @@ class POIParserSpec extends Specification {
 
     def "bbox with no nodes returns NoSuchElementException"() {
         when:
-        POIApi api = new POIApi(OCEAN_BBOX)
-        POIParser.parse(api)
+        doRequestAndParse(OCEAN_BBOX)
 
         then:
         def ex = thrown(NoSuchElementException)
@@ -56,8 +57,7 @@ class POIParserSpec extends Specification {
     @Ignore
     def "too big bbox returns TimeoutException"() {
         when:
-        POIApi api = new POIApi(GERMANY_BBOX)
-        POIParser.parse(api)
+        doRequestAndParse(GERMANY_BBOX)
 
         then:
         thrown(TimeoutException)
@@ -66,21 +66,26 @@ class POIParserSpec extends Specification {
     @Ignore
     def "three requests take less than hundred seconds without service error"() {
         when:
-        StopWatch watch = new StopWatch();
         watch.start()
+        doRequestAndParse(ANOTHER_BBOX)
+        doRequestAndParse(EIFFEL_BBOX)
+        doRequestAndParse(BERLIN_BBOX)
 
-        def api1 = new POIApi(ANOTHER_BBOX)
-        POIParser.parse(api1)
-        def api2 = new POIApi(EIFFEL_BBOX)
-        POIParser.parse(api2)
-        def api3 = new POIApi(BERLIN_BBOX)
-        POIParser.parse(api3)
-
-        watch.stop()
-        def time = watch.totalTimeSeconds
+        double time = stopTime()
 
         then:
         time < HUNDRED_SECONDS
+    }
+
+    private static List<Node> doRequestAndParse(Pair bbox) {
+        POIApi api2 = new POIApi(bbox)
+        POIParser.parse(api2)
+    }
+
+    private double stopTime() {
+        watch.stop()
+        def time = watch.totalTimeSeconds
+        time
     }
 
     private static void validateRequest(POIApi api, List<Node> nodes) {

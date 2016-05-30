@@ -11,9 +11,9 @@ class POIApi {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
 
-    private ResponseEntity response
-    private final String url
+    private String url
     private RestBuilder rest = new RestBuilder()
+    private ResponseEntity response
 
     String info
     String xmlContent
@@ -22,7 +22,6 @@ class POIApi {
     POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
         validateCoords(startLon, startLat, destinationLon, destinationLat)
         url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
-        LOGGING_HELPER.infoLog "POIApi Request to: $url"
     }
 
     POIApi(Point start, Point destination) {
@@ -51,6 +50,7 @@ class POIApi {
     boolean doRequest() {
         LOGGING_HELPER.startTimer()
 
+        LOGGING_HELPER.infoLog "POIApi Request to: $url"
         response = rest.get(this.url).responseEntity
         this.info = response.metaPropertyValues.get(0).value
         this.xmlContent = response.metaPropertyValues.get(2).value
