@@ -11,9 +11,13 @@ class POIApi {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
 
-    private ResponseEntity response
-    private final String url
+    private String url
+    private double startLon
+    private double startLat
+    private double destinationLon
+    private double destinationLat
     private RestBuilder rest = new RestBuilder()
+    private ResponseEntity response
 
     String info
     String xmlContent
@@ -22,7 +26,6 @@ class POIApi {
     POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
         validateCoords(startLon, startLat, destinationLon, destinationLat)
         url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
-        LOGGING_HELPER.infoLog "POIApi Request to: $url"
     }
 
     POIApi(Point start, Point destination) {
@@ -33,7 +36,7 @@ class POIApi {
         this(pointPair.a.lon, pointPair.a.lat, pointPair.b.lon, pointPair.b.lat)
     }
 
-    static def validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
+    def validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
         Preconditions.checkNotNull(startLon)
         Preconditions.checkNotNull(startLat)
         Preconditions.checkNotNull(destinationLon)
@@ -42,6 +45,11 @@ class POIApi {
         if (!(startLon < destinationLon && startLat < destinationLat)) {
             throw new IllegalArgumentException("The start-position is higher or equals to the destination-position.")
         }
+
+        this.startLon = startLon
+        this.startLat = startLat
+        this.destinationLon = destinationLon
+        this.destinationLat = destinationLat
     }
 
     /**
@@ -49,9 +57,12 @@ class POIApi {
      * @return success - if the POIApi xmlContent is valid or not
      */
     boolean doRequest() {
+        clearFields()
         LOGGING_HELPER.startTimer()
 
+        LOGGING_HELPER.infoLog "POIApi Request to: $url"
         response = rest.get(this.url).responseEntity
+
         this.info = response.metaPropertyValues.get(0).value
         this.xmlContent = response.metaPropertyValues.get(2).value
         this.status = response.metaPropertyValues.get(3).value as HttpStatus
@@ -59,5 +70,33 @@ class POIApi {
 
         LOGGING_HELPER.logTime(POIApi.class.getSimpleName())
         success
+    }
+
+    boolean doRequest(Pair<Point, Point> bbox) {
+        this.url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=" +
+                "$bbox.a.lon,$bbox.a.lat,$bbox.b.lon,$bbox.b.lat]"
+        doRequest()
+    }
+
+    def clearFields() {
+        info = ""
+        xmlContent = ""
+        status = null
+    }
+
+    double getStartLon() {
+        return startLon
+    }
+
+    double getStartLat() {
+        return startLat
+    }
+
+    double getDestinationLon() {
+        return destinationLon
+    }
+
+    double getDestinationLat() {
+        return destinationLat
     }
 }

@@ -9,4 +9,13 @@ class Point {
         this.lon = lon
         this.lat = lat
     }
+
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "lon=" + lon +
+                ", lat=" + lat +
+                '}';
+    }
 }

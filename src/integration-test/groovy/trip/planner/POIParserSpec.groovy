@@ -84,13 +84,11 @@ class POIParserSpec extends Specification {
         when:
 
         watch.start()
-
         doRequestAndParse(MEDIUM_BBOX_ONE)
         double timeOne = stopTime()
 
         watch.start()
         doRequestAndParse(MEDIUM_BBOX_TWO)
-
         double timeTwo = stopTime()
 
         then:

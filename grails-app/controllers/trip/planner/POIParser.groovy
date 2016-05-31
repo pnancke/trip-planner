@@ -3,11 +3,15 @@ package trip.planner
 import com.thoughtworks.xstream.XStream
 import com.thoughtworks.xstream.mapper.CannotResolveClassException
 import trip.planner.osm.api.POIApi
+import trip.planner.osm.api.Pair
+import trip.planner.osm.api.PlaceValidator
+import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
 import trip.planner.osm.model.POIRequest
 import trip.planner.osm.model.Tag
 
 import java.util.concurrent.TimeoutException
+import java.util.stream.Collectors
 
 import static trip.planner.osm.api.LoggingHelper.LOGGING_HELPER
 
@@ -19,13 +23,29 @@ class POIParser {
     public static final String UNAVAILABLE_MESSAGE = "Service is still running, please wait."
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
     public static final long TEN_SECONDS = 10000L
+    public static final int TWO_HUNDRED_SECONDS = 200
+    public static final int SIXTY_SECONDS = 60
 
     static List<Node> parse(POIApi api) {
         int timerIndex = LOGGING_HELPER.newTimer()
         LOGGING_HELPER.startTimer(timerIndex)
+        List<Pair<Point, Point>> split = PlaceValidator.split(api)
 
+        if (split.size() == 1) {
+            return handleRequest({ api.doRequest() }, timerIndex, api)
+        } else {
+            BigDecimal minutes = (split.size() * TWO_HUNDRED_SECONDS) / SIXTY_SECONDS
+            LOGGING_HELPER.infoLog "Split big bbox into " + split.size() + " pieces.\n" +
+                    "In worst the whole calculation needs $minutes m."
+
+            return split.stream().flatMap({ area -> handleRequest({ api.doRequest(area) }, timerIndex, api) })
+                    .collect(Collectors.toList())
+        }
+    }
+
+    private static List<Node> handleRequest(Closure<Boolean> doRequestClosure, int timerIndex, POIApi api) {
         for (int i = 0; i < 4; i++) {
-            if (api.doRequest()) {
+            if (doRequestClosure.call()) {
                 String term = api.xmlContent
                 if (term.contains(FALSE_QUERY_MESSAGE)) {
                     throw new IllegalArgumentException("False query input parameter: $FALSE_QUERY_MESSAGE")
