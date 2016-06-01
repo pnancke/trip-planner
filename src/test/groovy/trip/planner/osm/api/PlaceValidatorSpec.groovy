@@ -25,6 +25,17 @@ class PlaceValidatorSpec extends Specification {
         endPoint.lat == DESTINATION_LAT
     }
 
+    def "leipzig paris split test"() {
+        when:
+        POIApi api = new POIApi(2.333135, 48.857031, 12.370116, 51.211646)
+        List<Pair<Point, Point>> allPoints = PlaceValidator.split(api)
+        println allPoints.size()
+        double seconds = (allPoints.size() * 200) / 60
+        println seconds
+        then:
+        true
+    }
+
     def "split size check"() {
         when:
         POIApi api = new POIApi(50, 50, 100, 100)
