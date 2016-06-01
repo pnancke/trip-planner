@@ -35,11 +35,11 @@ class POIApiSpec extends Specification {
         ex.message == VALIDATION_ERROR
     }
 
-    def "mixed bbox is still mixed"() {
+    def "mixed bbox changes"() {
         when:
         POIApi api = new POIApi(MIXED_PAIR);
 
         then:
-        api.getBBox().equals(MIXED_PAIR)
+        !api.getBBox().equals(MIXED_PAIR)
     }
 }

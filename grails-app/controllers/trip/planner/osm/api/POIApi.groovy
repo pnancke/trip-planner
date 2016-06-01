@@ -63,7 +63,7 @@ class POIApi {
 
 
         if (startLat == destinationLat && destinationLon == startLon) {
-            throw new IllegalArgumentException("The start-position equals to the destination-position.")
+            throw new IllegalArgumentException("The start-position is equals to the destination-position.")
 
         }
 
