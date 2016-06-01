@@ -18,10 +18,11 @@ class POIParser {
             "always be greater or equal than the value of attribute \"s\"."
     public static final String UNAVAILABLE_MESSAGE = "Service is still running, please wait."
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
-    public static final long FIVE_SECONDS = 5000L
+    public static final long TEN_SECONDS = 10000L
 
     static List<Node> parse(POIApi api) {
-        LOGGING_HELPER.startTimer()
+        int timerIndex = LOGGING_HELPER.newTimer()
+        LOGGING_HELPER.startTimer(timerIndex)
 
         for (int i = 0; i < 4; i++) {
             if (api.doRequest()) {
@@ -41,18 +42,19 @@ class POIParser {
                         throw new NoSuchElementException("No nodes found in given bbox.")
                     }
 
-                    LOGGING_HELPER.logTime(POIParser.class.getSimpleName())
+                    LOGGING_HELPER.logTime(POIParser.class.getSimpleName(), timerIndex)
 
                     return request.nodes
                 } catch (CannotResolveClassException crce) {
                     throw new IllegalArgumentException("Cannot parse: $term. Cause from parser: " + crce.message)
                 }
             } else {
-                Thread.sleep(FIVE_SECONDS)
+                LOGGING_HELPER.infoLog("Wait 10 s then try again.")
+                Thread.sleep(TEN_SECONDS)
             }
         }
 
-        LOGGING_HELPER.logTime(POIParser.class.getSimpleName())
+        LOGGING_HELPER.logTime(POIParser.class.getSimpleName(), timerIndex)
 
         if (api.xmlContent.contains(ANOTHER_SERVICE_MESSAGE)) {
             throw new RuntimeException(UNAVAILABLE_MESSAGE)

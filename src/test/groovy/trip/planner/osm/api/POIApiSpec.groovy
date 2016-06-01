@@ -33,4 +33,11 @@ class POIApiSpec extends Specification {
         def ex = thrown(IllegalArgumentException)
         ex.message == VALIDATION_ERROR
     }
+
+    def "do request with time logging"() {
+        when:
+        POIApi api = new POIApi(50, 50, 56, 54)
+        then:
+        api.doRequest()
+    }
 }
