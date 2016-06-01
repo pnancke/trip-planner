@@ -5,15 +5,25 @@ import spock.lang.Specification
 class POIApiSpec extends Specification {
 
 
-    public static final String VALIDATION_ERROR = "The start-position is higher or equals to the destination-position."
+    public static final String VALIDATION_ERROR = "The start-position is equals to the destination-position."
+    public static final Pair<Point, Point> LOWER_THAN_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 0))
+    public static final Pair<Point, Point> HIGHER_THAN_PAIR = new Pair<Point, Point>(new Point(0, 0), new Point(50, 50))
+    public static final Pair<Point, Point> MIXED_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 100))
 
-    def "fails on higherThan validation"() {
+    def "lowerThan bbox changes to higherThan"() {
         when:
-        new POIApi(50, 50, 0, 0)
+        POIApi api = new POIApi(LOWER_THAN_PAIR);
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == VALIDATION_ERROR
+        api.getBBox().equals(HIGHER_THAN_PAIR)
+    }
+
+    def "higherThan is still higherThan"() {
+        when:
+        POIApi api = new POIApi(HIGHER_THAN_PAIR)
+
+        then:
+        api.getBBox().equals(HIGHER_THAN_PAIR)
     }
 
     def "fails on equals validation"() {
@@ -25,19 +35,11 @@ class POIApiSpec extends Specification {
         ex.message == VALIDATION_ERROR
     }
 
-    def "fails on mixed validation"() {
+    def "mixed bbox is still mixed"() {
         when:
-        new POIApi(50, 50, 0, 100)
+        POIApi api = new POIApi(MIXED_PAIR);
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == VALIDATION_ERROR
-    }
-
-    def "do request with time logging"() {
-        when:
-        POIApi api = new POIApi(50, 50, 56, 54)
-        then:
-        api.doRequest()
+        api.getBBox().equals(MIXED_PAIR)
     }
 }

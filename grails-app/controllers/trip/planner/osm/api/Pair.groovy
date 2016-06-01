@@ -26,8 +26,25 @@ class Pair<A, B> {
         this.b = b
     }
 
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
 
-    @Override
+        Pair pair = (Pair) o
+
+        if (a != pair.a) return false
+        if (b != pair.b) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = (a != null ? a.hashCode() : 0)
+        result = 31 * result + (b != null ? b.hashCode() : 0)
+        return result
+    }
+
     public String toString() {
         return "Pair{" +
                 "a=" + a +
