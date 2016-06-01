@@ -18,9 +18,25 @@ class POIApi {
     String info
     String xmlContent
     HttpStatus status
+    private double startLat
+    private double destinationLat
+    private double startLon
+    private double destinationLon
 
     POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
-        validateCoords(startLon, startLat, destinationLon, destinationLat)
+        if (validateCoords(startLon, startLat, destinationLon, destinationLat)) {
+            double tmpLon = startLon
+            startLon = destinationLon
+            destinationLon = tmpLon
+
+            double tmpLat = startLat
+            startLat = destinationLat
+            destinationLat = tmpLat
+        }
+        this.startLat = startLat
+        this.destinationLat = destinationLat
+        this.startLon = startLon
+        this.destinationLon = destinationLon
         url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
     }
 
@@ -32,15 +48,26 @@ class POIApi {
         this(pointPair.a.lon, pointPair.a.lat, pointPair.b.lon, pointPair.b.lat)
     }
 
-    static def validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
+    /**
+     * @param startLon
+     * @param startLat
+     * @param destinationLon
+     * @param destinationLat
+     * @return swapIsNecessary
+     */
+    static boolean validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
         Preconditions.checkNotNull(startLon)
         Preconditions.checkNotNull(startLat)
         Preconditions.checkNotNull(destinationLon)
         Preconditions.checkNotNull(destinationLat)
 
-        if (!(startLon < destinationLon && startLat < destinationLat)) {
-            throw new IllegalArgumentException("The start-position is higher or equals to the destination-position.")
+
+        if (startLat == destinationLat && destinationLon == startLon) {
+            throw new IllegalArgumentException("The start-position is equals to the destination-position.")
+
         }
+
+        return !(startLon < destinationLon && startLat < destinationLat)
     }
 
     /**
@@ -59,5 +86,10 @@ class POIApi {
 
         LOGGING_HELPER.logTime(POIApi.class.getSimpleName())
         success
+    }
+
+    public Pair<Point, Point> getBBox() {
+        return new Pair<Point, Point>(new Point(startLon, startLat)
+                , new Point(destinationLon, destinationLat))
     }
 }
