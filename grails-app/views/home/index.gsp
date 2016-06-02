@@ -40,23 +40,26 @@
 
     function drawRoute() {
         getRoute($('#start-longitude').val(), $('#start-latitude').val(),
-                $('#destination-longitude').val(), $('#destination-latitude').val());
+                $('#destination-longitude').val(), $('#destination-latitude').val(),
+                $('#additional-time-selector').val() * 3600);
     }
 
-    function getRoute(startLongitude, startLatitude, endLongitude, endLatitude) {
+    function getRoute(startLongitude, startLatitude, endLongitude, endLatitude, additionalTravelTime) {
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?startLon=' + startLongitude
-                + '&startLat=' + startLatitude + '&endLon=' + endLongitude + '&endLat=' + endLatitude,
+                + '&startLat=' + startLatitude + '&endLon=' + endLongitude + '&endLat=' + endLatitude
+                + '&additionalTravelTime=' + additionalTravelTime,
                 {}, function (data) {
                 }).done(function (response) {
             stopSpinner();
             var responseJson = JSON.parse(response);
             if (!responseJson.success) {
                 alert(responseJson.error);
-            } else if (responseJson.data == undefined || responseJson.data == "") {
+            } else if (responseJson.route == undefined || responseJson.route == "") {
                 alert("There is no route between the given locations!");
             } else {
-                drawLine(responseJson.data);
+                drawLine(responseJson.route);
+                addMarkers(responseJson.pois);
             }
         });
     }
@@ -73,14 +76,14 @@
         <input id="location-search-destination" class="location-verify-color" type="text" placeholder="Destination"
                oninput="invalidate(this);" required>
         <br/><br/>
-        <label for="max-time-selector">Maximum travel time without retention (hours):<br/></label><br/><input
+        <label for="additional-time-selector">Additional travel time without retention (hours):<br/></label><br/><input
             type="number"
-            id="max-time-selector"
-            name="max-time-selector"
-            class="max-time-selector"
-            value="1"
-            min="0"
-            step="any">
+            id="additional-time-selector"
+            name="additional-time-selector"
+            class="additional-time-selector"
+            value="0.5"
+            min="0.1"
+            step="0.1">
         <br/>
 
         <p></p><br/>
