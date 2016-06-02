@@ -1,14 +1,22 @@
 package trip.planner
 
 import de.lmu.ifi.dbs.elki.data.Cluster
+import de.lmu.ifi.dbs.elki.data.DoubleVector
+import de.lmu.ifi.dbs.elki.data.NumberVector
+import de.lmu.ifi.dbs.elki.data.model.KMeansModel
+import de.lmu.ifi.dbs.elki.data.type.TypeUtil
+import de.lmu.ifi.dbs.elki.database.Database
+import de.lmu.ifi.dbs.elki.database.ids.DBIDIter
+import de.lmu.ifi.dbs.elki.database.relation.Relation
 import grails.plugins.rest.client.RestBuilder
 import groovy.json.JsonBuilder
 import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.POIApi
+import trip.planner.osm.api.Pair
 import trip.planner.osm.model.Node
 
+import static trip.planner.osm.api.ElkiWrapper.extractClusters
 import static trip.planner.osm.api.ElkiWrapper.filterOutliers
-import static trip.planner.osm.api.ElkiWrapper.getClusters
 
 class HomeController {
 
@@ -20,7 +28,7 @@ class HomeController {
 
     def getRoute(double startLon, double startLat, double endLon, double endLat, int additionalTravelTime) {
         RestBuilder rest = new RestBuilder()
-        def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startLat&flon=$startLon&tlat=$endLat&&tlon=$endLon"
+        def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startLat&flon=$startLon&tlat=$endLat&tlon=$endLon"
         def json = new JsonBuilder()
         for (int i = 1; i < 4; i++) {
             try {
@@ -29,21 +37,12 @@ class HomeController {
                 def routeCoordinates = xml.Document.Folder.Placemark.LineString.coordinates.text().trim().tokenize("\n")
 
                 ArrayList<Node> nodes = new POIParser().parse(new POIApi(startLon, startLat, endLon, endLat))
-                ArrayList<Node> nodesFiltered = new ArrayList<>()
-                for (Node node : nodes) {
-                    if (node.hasTagName()) {
-                        nodesFiltered.add(node)
-                    }
-                }
+                ArrayList<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
 
-                ArrayList<Cluster> clusters = getClusters(nodesFiltered, K_MEANS_CLUSTER_SIZE, K_MEANS_ITERATIONS)
-                ArrayList<Cluster> filteredClusters = filterOutliers(clusters, K_MEANS_CLUSTER_SIZE, MIN_MEAN_PERCENTAGE_CLUSTER_SIZE)
-
-                def size = routeCoordinates.size()
                 json {
                     success true
-                    count size
-                    data routeCoordinates.collect { it.tokenize(",") }
+                    route routeCoordinates.collect { it.tokenize(",") }
+                    pois poiCoordinates
                 }
                 render json.toString()
                 return
@@ -54,9 +53,29 @@ class HomeController {
         }
         json {
             success false
-            count 0
             error 'Error: Unable to generate route. Please try again later!'
         }
         render json.toString()
+    }
+
+    private static ArrayList<double[]> extractCoordinatesWithoutOutliers(ArrayList<Node> nodes) {
+        Pair<Database, ArrayList<Cluster<KMeansModel>>> pair =
+                extractClusters(nodes, K_MEANS_CLUSTER_SIZE, K_MEANS_ITERATIONS)
+        Database db = pair.getA()
+        ArrayList<Cluster> clusters = pair.getB()
+        ArrayList<Cluster> filteredClusters = filterOutliers(clusters,
+                K_MEANS_CLUSTER_SIZE,
+                MIN_MEAN_PERCENTAGE_CLUSTER_SIZE)
+
+        filteredClusters.each { it.getIDs() }
+        Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD);
+        ArrayList<double[]> poiCoordinates = new ArrayList<>()
+        filteredClusters.each { Cluster<KMeansModel> clu ->
+            for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
+                DoubleVector v = rel.get(it) as DoubleVector
+                poiCoordinates.add(v.getValues())
+            }
+        }
+        poiCoordinates
     }
 }

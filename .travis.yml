@@ -9,4 +9,6 @@ before_install:
 - source "/home/travis/.sdkman/bin/sdkman-init.sh"
 - sdk install grails 3.1.4
 
-script: grails test-app -unit --stacktrace
+script:
+- grails test-app -unit --stacktrace
+- grails test-app trip.planner.HomeControllerIntegrationSpec -integration
