@@ -37,7 +37,7 @@ class POIApi {
         this.destinationLat = destinationLat
         this.startLon = startLon
         this.destinationLon = destinationLon
-        url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
+        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
     }
 
     POIApi(Point start, Point destination) {
