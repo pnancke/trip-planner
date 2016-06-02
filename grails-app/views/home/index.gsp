@@ -55,10 +55,11 @@
             var responseJson = JSON.parse(response);
             if (!responseJson.success) {
                 alert(responseJson.error);
-            } else if (responseJson.data == undefined || responseJson.data == "") {
+            } else if (responseJson.route == undefined || responseJson.route == "") {
                 alert("There is no route between the given locations!");
             } else {
-                drawLine(responseJson.data);
+                drawLine(responseJson.route);
+                addMarkers(responseJson.pois);
             }
         });
     }

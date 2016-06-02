@@ -21,7 +21,7 @@ class POIApi {
 
     POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
         validateCoords(startLon, startLat, destinationLon, destinationLat)
-        url = "http://www.overpass-api.de/api/xapi?*[tourism=attraction][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
+        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
         LOGGING_HELPER.infoLog "POIApi Request to: $url"
     }
 
