@@ -2,14 +2,14 @@ package trip.planner
 
 import com.thoughtworks.xstream.XStream
 import com.thoughtworks.xstream.mapper.CannotResolveClassException
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import trip.planner.osm.api.POIApi
 import trip.planner.osm.model.Node
 import trip.planner.osm.model.POIRequest
 import trip.planner.osm.model.Tag
 
 import java.util.concurrent.TimeoutException
-
-import static trip.planner.osm.api.LoggingHelper.LOGGING_HELPER
 
 class POIParser {
 
@@ -19,10 +19,10 @@ class POIParser {
     public static final String UNAVAILABLE_MESSAGE = "Service is still running, please wait."
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
     public static final long TEN_SECONDS = 10000L
+    private static Log log = LogFactory.getLog(POIParser.class)
 
     static List<Node> parse(POIApi api) {
-        int timerIndex = LOGGING_HELPER.newTimer()
-        LOGGING_HELPER.startTimer(timerIndex)
+        log.info "Begin parsing of poi-request with bbox: ${api.getBBox()}"
 
         for (int i = 0; i < 4; i++) {
             if (api.doRequest()) {
@@ -42,19 +42,15 @@ class POIParser {
                         throw new NoSuchElementException("No nodes found in given bbox.")
                     }
 
-                    LOGGING_HELPER.logTime(POIParser.class.getSimpleName(), timerIndex)
-
                     return request.nodes
                 } catch (CannotResolveClassException crce) {
                     throw new IllegalArgumentException("Cannot parse: $term. Cause from parser: " + crce.message)
                 }
             } else {
-                LOGGING_HELPER.infoLog("Wait 10 s then try again.")
+                log.info "Wait 10 s then try again."
                 Thread.sleep(TEN_SECONDS)
             }
         }
-
-        LOGGING_HELPER.logTime(POIParser.class.getSimpleName(), timerIndex)
 
         if (api.xmlContent.contains(ANOTHER_SERVICE_MESSAGE)) {
             throw new RuntimeException(UNAVAILABLE_MESSAGE)
