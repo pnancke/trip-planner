@@ -1,4 +1,5 @@
 var map;
+var markerLayer;
 var lineLayer;
 var lineStyle = {
     strokeColor: '#0000ff',
@@ -14,6 +15,8 @@ function init() {
     });
     var ol = new OpenLayers.Layer.OSM();
     map.addLayer(ol);
+    markerLayer = new OpenLayers.Layer.Markers("Markers");
+    map.addLayer(markerLayer);
 
     lineLayer = new OpenLayers.Layer.Vector("Line Layer");
 
@@ -50,6 +53,18 @@ function drawLine(arrayOfPoints) {
         ), 15);
 }
 
+function addMarker(lat, lon) {
+    var lonLat = new OpenLayers.LonLat(lon, lat)
+        .transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+    markerLayer.addMarker(new OpenLayers.Marker(lonLat));
+}
+
+function addMarkers(coordinates) {
+    markerLayer.clearMarkers();
+    for (var i = 0; i < coordinates.length; i++) {
+        addMarker(coordinates[i][0], coordinates[i][1]);
+    }
+}
 
 function resizeMap() {
     var margin = 20;
@@ -67,7 +82,6 @@ function resizeMap() {
         basicMapElem.style.height = window.innerHeight - margin - footerSpace + 'px';
     }
 }
-
 
 function generateAutocompleteData(json) {
     var items = [];
