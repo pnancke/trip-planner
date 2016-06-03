@@ -46,12 +46,14 @@
     }
 
     function getRoute(startLongitude, startLatitude, endLongitude, endLatitude, additionalTravelTime) {
+        $('#submit-route-button').prop('disabled', true);
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?startLon=' + startLongitude
                 + '&startLat=' + startLatitude + '&endLon=' + endLongitude + '&endLat=' + endLatitude
                 + '&additionalTravelTime=' + additionalTravelTime,
                 {}, function (data) {
                 }).done(function (response) {
+            $('#submit-route-button').prop('disabled', false);
             stopSpinner();
             var responseJson = JSON.parse(response);
             if (!responseJson.success) {
