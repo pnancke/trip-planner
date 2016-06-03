@@ -21,7 +21,7 @@ import static trip.planner.osm.api.ElkiWrapper.filterOutliers
 class HomeController {
 
     private static int K_MEANS_CLUSTER_SIZE = 10
-    private static final int K_MEANS_ITERATIONS = 5
+    private static final int MAX_K_MEANS_ITERATIONS = 50
     private static final BigDecimal MIN_MEAN_PERCENTAGE_CLUSTER_SIZE = 0.8
 
     def index() {}
@@ -60,7 +60,7 @@ class HomeController {
 
     private static ArrayList<double[]> extractCoordinatesWithoutOutliers(ArrayList<Node> nodes) {
         Pair<Database, ArrayList<Cluster<KMeansModel>>> pair =
-                extractClusters(nodes, K_MEANS_CLUSTER_SIZE, K_MEANS_ITERATIONS)
+                extractClusters(nodes, K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
         Database db = pair.getA()
         ArrayList<Cluster> clusters = pair.getB()
         ArrayList<Cluster> filteredClusters = filterOutliers(clusters,
