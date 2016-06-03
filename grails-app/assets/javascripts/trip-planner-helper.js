@@ -103,8 +103,8 @@ function generateAutocompleteData(json) {
         }
     });
     var uniqueItems = [];
-    $.each(items, function (i, el) {
-        if ($.inArray(el.label, uniqueItems) === -1) uniqueItems.push(el.label);
+    $.each(items, function(i, el){
+        if($.inArray(el.label, uniqueItems) === -1) uniqueItems.push(el.label);
     });
     return uniqueItems;
 }
