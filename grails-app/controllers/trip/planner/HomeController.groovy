@@ -10,6 +10,8 @@ import de.lmu.ifi.dbs.elki.database.ids.DBIDIter
 import de.lmu.ifi.dbs.elki.database.relation.Relation
 import grails.plugins.rest.client.RestBuilder
 import groovy.json.JsonBuilder
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.NominationApi
 import trip.planner.osm.api.POIApi
@@ -25,6 +27,7 @@ class HomeController {
     private static int K_MEANS_CLUSTER_SIZE = 10
     private static final int MAX_K_MEANS_ITERATIONS = 50
     private static final BigDecimal MIN_MEAN_PERCENTAGE_CLUSTER_SIZE = 0.8
+    private static Log log = LogFactory.getLog(HomeController.class)
 
     def index() {}
 
