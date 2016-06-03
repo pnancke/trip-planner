@@ -20,11 +20,11 @@ class ElkiWrapper {
 
     static Pair<Database, ArrayList<Cluster<KMeansModel>>> extractClusters(ArrayList<Node> nodes,
                                                                            int kMeansPartitions,
-                                                                           int kMeansIterations) {
+                                                                           int maxKMeansIterations) {
         LoggingConfiguration.setStatistics()
         double[][] data = convertNodeList(nodes)
         StaticArrayDatabase db = createDatabase(data)
-        Clustering<KMeansModel> c = createKMeans(kMeansPartitions, kMeansIterations).run(db)
+        Clustering<KMeansModel> c = createKMeans(kMeansPartitions, maxKMeansIterations).run(db)
         ArrayList<Cluster<KMeansModel>> clusters = c.getAllClusters()
         def pair = new Pair<Database, ArrayList<Cluster<KMeansModel>>>(db, clusters)
         pair
@@ -46,10 +46,10 @@ class ElkiWrapper {
         filteredClusters
     }
 
-    private static KMeansLloyd<NumberVector> createKMeans(int kMeansPartitions, int kMeansIterations) {
+    private static KMeansLloyd<NumberVector> createKMeans(int kMeansPartitions, int maxKMeansIterations) {
         LatLngDistanceFunction dist = new LatLngDistanceFunction(SphericalVincentyEarthModel.STATIC)
         RandomlyGeneratedInitialMeans init = new RandomlyGeneratedInitialMeans(RandomFactory.DEFAULT)
-        KMeansLloyd<NumberVector> km = new KMeansLloyd<>(dist, kMeansPartitions, kMeansIterations, init)
+        KMeansLloyd<NumberVector> km = new KMeansLloyd<>(dist, kMeansPartitions, maxKMeansIterations, init)
         km
     }
 
