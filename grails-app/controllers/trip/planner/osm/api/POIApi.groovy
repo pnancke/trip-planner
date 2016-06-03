@@ -2,14 +2,17 @@ package trip.planner.osm.api
 
 import com.google.common.base.Preconditions
 import grails.plugins.rest.client.RestBuilder
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-
-import static trip.planner.osm.api.LoggingHelper.LOGGING_HELPER
+import trip.planner.util.ActiveTimer
 
 class POIApi {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
+
+    private static Log log = LogFactory.getLog(POIApi.class)
 
     private String url
     private RestBuilder rest = new RestBuilder()
@@ -18,6 +21,7 @@ class POIApi {
     String info
     String xmlContent
     HttpStatus status
+
     private double startLat
     private double destinationLat
     private double startLon
@@ -61,10 +65,8 @@ class POIApi {
         Preconditions.checkNotNull(destinationLon)
         Preconditions.checkNotNull(destinationLat)
 
-
         if (startLat == destinationLat && destinationLon == startLon) {
             throw new IllegalArgumentException("The start-position is equals to the destination-position.")
-
         }
 
         return !(startLon < destinationLon && startLat < destinationLat)
@@ -75,16 +77,16 @@ class POIApi {
      * @return success - if the POIApi xmlContent is valid or not
      */
     boolean doRequest() {
-        LOGGING_HELPER.startTimer()
+        ActiveTimer timer = new ActiveTimer()
 
-        LOGGING_HELPER.infoLog "POIApi Request to: $url"
+        log.info "POIApi Request to: $url"
         response = rest.get(this.url).responseEntity
         this.info = response.metaPropertyValues.get(0).value
         this.xmlContent = response.metaPropertyValues.get(2).value
         this.status = response.metaPropertyValues.get(3).value as HttpStatus
         boolean success = !xmlContent.contains(ANOTHER_SERVICE_MESSAGE)
 
-        LOGGING_HELPER.logTime(POIApi.class.getSimpleName())
+        timer.stopAndLog(log)
         success
     }
 

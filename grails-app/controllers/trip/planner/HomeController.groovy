@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Pair
 import trip.planner.osm.model.Node
+import trip.planner.util.ActiveTimer
 
 import static trip.planner.osm.api.ElkiWrapper.extractClusters
 import static trip.planner.osm.api.ElkiWrapper.filterOutliers
@@ -34,11 +35,18 @@ class HomeController {
             try {
                 def xml = new XmlSlurper().parseText(rest.get(url).text)
                 Integer travelTime = xml.Document.traveltime.toInteger()
+                log.info "found a route with a travel-time of: $travelTime"
                 def routeCoordinates = xml.Document.Folder.Placemark.LineString.coordinates.text().trim().tokenize("\n")
 
+                ActiveTimer timer = new ActiveTimer()
                 ArrayList<Node> nodes = new POIParser().parse(new POIApi(startLon, startLat, endLon, endLat))
+                timer.stopAndLog(log, "POI parsing.")
+                timer.reset()
                 ArrayList<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
+                timer.stopAndLog(log, "clustering.")
 
+                log.info "found ${nodes.size()} nodes"
+                log.info "after clustering, ${poiCoordinates.size()} nodes are given"
                 json {
                     success true
                     route routeCoordinates.collect { it.tokenize(",") }
