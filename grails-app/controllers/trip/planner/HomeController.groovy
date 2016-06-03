@@ -11,6 +11,7 @@ import de.lmu.ifi.dbs.elki.database.relation.Relation
 import grails.plugins.rest.client.RestBuilder
 import groovy.json.JsonBuilder
 import org.springframework.web.client.RestClientException
+import trip.planner.osm.api.NominationApi
 import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Pair
 import trip.planner.osm.model.Node
@@ -27,43 +28,79 @@ class HomeController {
 
     def index() {}
 
-    def getRoute(double startLon, double startLat, double endLon, double endLat, int additionalTravelTime) {
-        RestBuilder rest = new RestBuilder()
-        def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startLat&flon=$startLon&tlat=$endLat&tlon=$endLon"
-        def json = new JsonBuilder()
-        for (int i = 1; i < 4; i++) {
-            try {
-                def xml = new XmlSlurper().parseText(rest.get(url).text)
-                Integer travelTime = xml.Document.traveltime.toInteger()
-                log.info "found a route with a travel-time of: $travelTime"
-                def routeCoordinates = xml.Document.Folder.Placemark.LineString.coordinates.text().trim().tokenize("\n")
+    def getRoute(String start, String destination, int additionalTravelTime) {
+        Pair<Double, Double> startLatLon = extractCoordinates(start)
+        Pair<Double, Double> destLatLon = extractCoordinates(destination)
 
-                ActiveTimer timer = new ActiveTimer()
-                ArrayList<Node> nodes = new POIParser().parse(new POIApi(startLon, startLat, endLon, endLat))
-                timer.stopAndLog(log, "POI parsing.")
-                timer.reset()
-                ArrayList<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
-                timer.stopAndLog(log, "clustering.")
-
-                log.info "found ${nodes.size()} nodes"
-                log.info "after clustering, ${poiCoordinates.size()} nodes are given"
-                json {
-                    success true
-                    route routeCoordinates.collect { it.tokenize(",") }
-                    pois poiCoordinates
+        if (startLatLon == null && destLatLon == null) {
+            render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
+        } else if (startLatLon == null) {
+            render createErrorMessage("Error: Unable to find '$start'!")
+        } else if (destLatLon == null) {
+            render createErrorMessage("Error: Unable to find '$destination'!")
+        } else {
+            RestBuilder rest = new RestBuilder()
+            def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startLatLon.a&flon=$startLatLon.b" +
+                    "&tlat=$destLatLon.a&tlon=$destLatLon.b"
+            for (int i = 1; i < 4; i++) {
+                try {
+                    ArrayList<String> routeCoordinates = getRouteCoordinates(rest, url)
+                    ArrayList<double[]> poiCoordinates = getPOIs(startLatLon, destLatLon)
+                    def startCoords = [startLatLon.a, startLatLon.b]
+                    def json = new JsonBuilder()
+                    json {
+                        success true
+                        route routeCoordinates
+                        pois poiCoordinates
+                        startCoordinates startCoords
+                    }
+                    render json.toString()
+                    return
+                } catch (RestClientException e) {
+                    log.error("RestClientException while calling routing api! Try:" + i, e)
+                    i++
                 }
-                render json.toString()
-                return
-            } catch (RestClientException e) {
-                log.error("RestClientException while calling routing api! Try:" + i, e)
-                i++
             }
+            render createErrorMessage("Error: Unable to generate route. Please try again later!")
         }
+    }
+
+    private String createErrorMessage(String message) {
+        def json = new JsonBuilder()
         json {
             success false
-            error 'Error: Unable to generate route. Please try again later!'
+            error message
         }
-        render json.toString()
+        json.toString()
+    }
+
+    private static ArrayList<String> getRouteCoordinates(RestBuilder rest, GString url) {
+        def xml = new XmlSlurper().parseText(rest.get(url).text)
+        Integer travelTime = xml.Document.traveltime.toInteger()
+        log.info "found a route with a travel-time of: $travelTime"
+        def routeCoordinates = xml.Document.Folder.Placemark.LineString.coordinates.text().trim().tokenize("\n")
+        def list = routeCoordinates.collect { it.tokenize(",") }
+        list
+    }
+
+    private static ArrayList<double[]> getPOIs(Pair<Double, Double> startLatLon, Pair<Double, Double> destLatLon) {
+        ActiveTimer timer = new ActiveTimer()
+        ArrayList<Node> nodes = new POIParser().parse(new POIApi(startLatLon.b, startLatLon.a, destLatLon.b, destLatLon.a))
+        timer.stopAndLog(log, "POI parsing.")
+        timer.reset()
+        ArrayList<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
+        timer.stopAndLog(log, "clustering.")
+
+        log.info "found ${nodes.size()} nodes"
+        log.info "after clustering, ${poiCoordinates.size()} nodes are given"
+        poiCoordinates
+    }
+
+    private static Pair<Double, Double> extractCoordinates(String start) {
+        def nominationApi = new NominationApi(start)
+        nominationApi.doRequest()
+        def latLon = nominationApi.latLon
+        latLon
     }
 
     private static ArrayList<double[]> extractCoordinatesWithoutOutliers(ArrayList<Node> nodes) {
