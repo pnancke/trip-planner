@@ -1,11 +1,16 @@
 package trip.planner.osm.api
 
+import com.google.common.base.Preconditions
+
 class Point {
 
-    double lon
-    double lat
+    Double lon
+    Double lat
 
-    Point(double lon, double lat) {
+    Point(Double lon, Double lat) {
+        Preconditions.checkNotNull(lon)
+        Preconditions.checkNotNull(lat)
+
         this.lon = lon
         this.lat = lat
     }
@@ -34,9 +39,6 @@ class Point {
 
     @Override
     public String toString() {
-        return "Point{" +
-                "lon=" + lon +
-                ", lat=" + lat +
-                '}';
+        return "[" + lon + "," + lat + "]";
     }
 }

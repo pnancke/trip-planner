@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.NominationApi
 import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Pair
+import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
 import trip.planner.util.ActiveTimer
 
@@ -32,24 +33,24 @@ class HomeController {
     def index() {}
 
     def getRoute(String start, String destination, int additionalTravelTime) {
-        Pair<Double, Double> startLatLon = extractCoordinates(start)
-        Pair<Double, Double> destLatLon = extractCoordinates(destination)
+        Point startPoint = extractCoordinates(start)
+        Point destPoint = extractCoordinates(destination)
 
-        if (startLatLon == null && destLatLon == null) {
+        if (startPoint == null && destPoint == null) {
             render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
-        } else if (startLatLon == null) {
+        } else if (startPoint == null) {
             render createErrorMessage("Error: Unable to find '$start'!")
-        } else if (destLatLon == null) {
+        } else if (destPoint == null) {
             render createErrorMessage("Error: Unable to find '$destination'!")
         } else {
             RestBuilder rest = new RestBuilder()
-            def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startLatLon.a&flon=$startLatLon.b" +
-                    "&tlat=$destLatLon.a&tlon=$destLatLon.b"
+            def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startPoint.lat&flon=$startPoint.lon" +
+                    "&tlat=$destPoint.lat&tlon=$destPoint.lon"
             for (int i = 1; i < 4; i++) {
                 try {
-                    ArrayList<String> routeCoordinates = getRouteCoordinates(rest, url)
-                    ArrayList<double[]> poiCoordinates = getPOIs(startLatLon, destLatLon)
-                    def startCoords = [startLatLon.a, startLatLon.b]
+                    List<List<String>> routeCoordinates = getRouteCoordinates(rest, url)
+                    List<double[]> poiCoordinates = getPOIs(startPoint, destPoint)
+                    def startCoords = [startPoint.lat, startPoint.lon]
                     def json = new JsonBuilder()
                     json {
                         success true
@@ -77,7 +78,7 @@ class HomeController {
         json.toString()
     }
 
-    private static ArrayList<String> getRouteCoordinates(RestBuilder rest, GString url) {
+    private static List<List<String>> getRouteCoordinates(RestBuilder rest, GString url) {
         def xml = new XmlSlurper().parseText(rest.get(url).text)
         Integer travelTime = xml.Document.traveltime.toInteger()
         log.info "found a route with a travel-time of: $travelTime"
@@ -86,12 +87,12 @@ class HomeController {
         list
     }
 
-    private static ArrayList<double[]> getPOIs(Pair<Double, Double> startLatLon, Pair<Double, Double> destLatLon) {
+    private static List<double[]> getPOIs(Point start, Point dest) {
         ActiveTimer timer = new ActiveTimer()
-        ArrayList<Node> nodes = new POIParser().parse(new POIApi(startLatLon.b, startLatLon.a, destLatLon.b, destLatLon.a))
+        List<Node> nodes = new POIParser().parse(new POIApi(start.lon, start.lat, dest.lon, dest.lat))
         timer.stopAndLog(log, "POI parsing.")
         timer.reset()
-        ArrayList<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
+        List<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
         timer.stopAndLog(log, "clustering.")
 
         log.info "found ${nodes.size()} nodes"
@@ -99,25 +100,25 @@ class HomeController {
         poiCoordinates
     }
 
-    private static Pair<Double, Double> extractCoordinates(String start) {
+    private static Point extractCoordinates(String start) {
         def nominationApi = new NominationApi(start)
         nominationApi.doRequest()
-        def latLon = nominationApi.latLon
+        def latLon = nominationApi.point
         latLon
     }
 
-    private static ArrayList<double[]> extractCoordinatesWithoutOutliers(ArrayList<Node> nodes) {
-        Pair<Database, ArrayList<Cluster<KMeansModel>>> pair =
+    private static List<double[]> extractCoordinatesWithoutOutliers(List<Node> nodes) {
+        Pair<Database, List<Cluster<KMeansModel>>> pair =
                 extractClusters(nodes, K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
         Database db = pair.getA()
-        ArrayList<Cluster> clusters = pair.getB()
-        ArrayList<Cluster> filteredClusters = filterOutliers(clusters,
+        List<Cluster> clusters = pair.getB()
+        List<Cluster> filteredClusters = filterOutliers(clusters,
                 K_MEANS_CLUSTER_SIZE,
                 MIN_MEAN_PERCENTAGE_CLUSTER_SIZE)
 
         filteredClusters.each { it.getIDs() }
         Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD);
-        ArrayList<double[]> poiCoordinates = new ArrayList<>()
+        List<double[]> poiCoordinates = new ArrayList<>()
         filteredClusters.each { Cluster<KMeansModel> clu ->
             for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
                 DoubleVector v = rel.get(it) as DoubleVector
