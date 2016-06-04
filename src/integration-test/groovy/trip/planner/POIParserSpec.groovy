@@ -45,13 +45,12 @@ class POIParserSpec extends Specification {
         })
     }
 
-    def "bbox with no nodes returns NoSuchElementException"() {
+    def "bbox with no nodes succeeds"() {
         when:
-        doRequestAndParse(OCEAN_BBOX)
+        List<Node> list = doRequestAndParse(OCEAN_BBOX)
 
         then:
-        def ex = thrown(NoSuchElementException)
-        ex.message == "No nodes found in given bbox."
+        list.isEmpty()
     }
 
     @Ignore

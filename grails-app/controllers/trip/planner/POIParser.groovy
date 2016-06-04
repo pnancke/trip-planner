@@ -22,7 +22,7 @@ class POIParser {
     private static Log log = LogFactory.getLog(POIParser.class)
 
     static List<Node> parse(POIApi api) {
-        log.info "Begin parsing of poi-request with bbox: ${api.getBBox()}"
+        log.info "Begin parsing of poi-request with bbox: $api.BBox"
 
         for (int i = 0; i < 4; i++) {
             if (api.doRequest()) {
@@ -39,7 +39,8 @@ class POIParser {
                     }
 
                     if (request.nodes == null) {
-                        throw new NoSuchElementException("No nodes found in given bbox.")
+                        log.info "No nodes found in given bbox: $api.BBox"
+                        return Collections.emptyList()
                     }
 
                     return request.nodes
