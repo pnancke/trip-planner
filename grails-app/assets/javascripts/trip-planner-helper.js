@@ -31,7 +31,7 @@ function init() {
     );
 }
 
-function drawLine(arrayOfPoints) {
+function drawLine(arrayOfPoints, startCoordinates) {
     lineLayer.destroyFeatures();
     var points = [];
     arrayOfPoints.forEach(function (entry) {
@@ -44,13 +44,10 @@ function drawLine(arrayOfPoints) {
     var lineFeature = new OpenLayers.Feature.Vector(line, null, lineStyle);
     lineLayer.addFeatures([lineFeature]);
 
-    map.setCenter(new OpenLayers.LonLat(
-        $('#start-longitude').val()
-        , $('#start-latitude').val())
-        .transform(
-            new OpenLayers.Projection("EPSG:4326"),
-            new OpenLayers.Projection("EPSG:900913")
-        ), 15);
+    map.setCenter(new OpenLayers.LonLat(startCoordinates[1], startCoordinates[0]).transform(
+        new OpenLayers.Projection("EPSG:4326"),
+        new OpenLayers.Projection("EPSG:900913")
+    ), 15);
 }
 
 function addMarker(lat, lon) {
@@ -100,14 +97,16 @@ function generateAutocompleteData(json) {
                 return str;
             }).join(', ');
             currItem = {
-                "label": label,
-                "longitude": val.geometry.coordinates[0],
-                "latitude": val.geometry.coordinates[1]
+                "label": label
             };
             items.push(currItem);
         }
     });
-    return items;
+    var uniqueItems = [];
+    $.each(items, function(i, el){
+        if($.inArray(el.label, uniqueItems) === -1) uniqueItems.push(el.label);
+    });
+    return uniqueItems;
 }
 
 function getAutocompleteData(request, response) {
@@ -116,41 +115,6 @@ function getAutocompleteData(request, response) {
     }).done(function (json) {
         response(generateAutocompleteData(json));
     });
-}
-
-function setStartCoordinates(ui) {
-    $('#start-longitude').val(ui.item.longitude);
-    $('#start-latitude').val(ui.item.latitude);
-    $(this).attr('style', 'box-shadow:inset 0 0 1px 1px #4B9741 !important;');
-    $('#location-search-start').val(ui.item.label);
-    refreshSubmitButtonState();
-    return false;
-}
-
-function setDestinationCoordinates(ui) {
-    $('#destination-longitude').val(ui.item.longitude);
-    $('#destination-latitude').val(ui.item.latitude);
-    $(this).attr('style', 'box-shadow:inset 0 0 1px 1px #4B9741 !important;');
-    $('#location-search-destination').val(ui.item.label);
-    refreshSubmitButtonState();
-    return false;
-}
-
-function areStartAndDestCoordSet() {
-    return $('#start-longitude').val()
-        && $('#start-latitude').val()
-        && $('#destination-longitude').val()
-        && $('#destination-latitude').val()
-}
-
-function refreshSubmitButtonState() {
-    if (areStartAndDestCoordSet()) {
-        $('#submit-route-button').attr('style', 'background: #4B9741 !important;');
-    }
-}
-function invalidate(inputField) {
-    $(inputField).attr('style', 'box-shadow:inset 0 0 1px 1px #d83c3c !important;');
-    $('#submit-route-button').attr('style', 'background: #d83c3c !important;');
 }
 
 var spinner;

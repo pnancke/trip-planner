@@ -19,10 +19,7 @@
             source: function (request, response) {
                 getAutocompleteData(request, response);
             },
-            minLength: 2,
-            select: function (event, ui) {
-                return setStartCoordinates.call(this, ui);
-            }
+            minLength: 2
         });
     });
 
@@ -31,27 +28,23 @@
             source: function (request, response) {
                 getAutocompleteData(request, response);
             },
-            minLength: 2,
-            select: function (event, ui) {
-                return setDestinationCoordinates.call(this, ui);
-            }
+            minLength: 2
         });
     });
 
     function drawRoute() {
         var secondsInAnHour = 3600;
-        getRoute($('#start-longitude').val(), $('#start-latitude').val(),
-                $('#destination-longitude').val(), $('#destination-latitude').val(),
+        getRoute($('#location-search-start').val(), $('#location-search-destination').val(),
                 $('#additional-time-selector').val() * secondsInAnHour);
     }
 
-    function getRoute(startLongitude, startLatitude, endLongitude, endLatitude, additionalTravelTime) {
+    function getRoute(start, destination, additionalTravelTime) {
+        $('#submit-route-button').prop('disabled', true);
         startSpinner();
-        $.get('${g.createLink(controller: "home", action: "getRoute")}?startLon=' + startLongitude
-                + '&startLat=' + startLatitude + '&endLon=' + endLongitude + '&endLat=' + endLatitude
-                + '&additionalTravelTime=' + additionalTravelTime,
-                {}, function (data) {
-                }).done(function (response) {
+        $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
+                + '&additionalTravelTime=' + additionalTravelTime, {}, function (data) {
+        }).done(function (response) {
+            $('#submit-route-button').prop('disabled', false);
             stopSpinner();
             var responseJson = JSON.parse(response);
             if (!responseJson.success) {
@@ -59,7 +52,7 @@
             } else if (responseJson.route == undefined || responseJson.route == "") {
                 alert("There is no route between the given locations!");
             } else {
-                drawLine(responseJson.route);
+                drawLine(responseJson.route, responseJson.startCoordinates);
                 addMarkers(responseJson.pois);
             }
         });
@@ -71,11 +64,9 @@
 <div class="searchTown">
     <form class="form-wrapper cf" action="javascript:void(0);">
         Please insert and select the start and destination locations below.
-        <input id="location-search-start" class="location-verify-color" type="text" placeholder="Starting point"
-               oninput="invalidate(this);" required>
+        <input id="location-search-start" type="text" placeholder="Starting point" required>
         <br/><br/>
-        <input id="location-search-destination" class="location-verify-color" type="text" placeholder="Destination"
-               oninput="invalidate(this);" required>
+        <input id="location-search-destination" type="text" placeholder="Destination" required>
         <br/><br/>
         <label for="additional-time-selector">Additional travel time without retention (hours):<br/></label><br/><input
             type="number"
@@ -98,6 +89,7 @@
 <input type="hidden" id="start-latitude">
 <input type="hidden" id="destination-longitude">
 <input type="hidden" id="destination-latitude">
+
 <div id="spinner"></div>
 </body>
 </html>
