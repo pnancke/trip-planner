@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import trip.planner.util.ActiveTimer
 
+import java.util.stream.Collectors
+
 class POIApi {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
@@ -17,59 +19,16 @@ class POIApi {
     private String url
     private RestBuilder rest = new RestBuilder()
     private ResponseEntity response
+    private BBox bbox
 
     String info
     String xmlContent
     HttpStatus status
 
-    private double startLat
-    private double destinationLat
-    private double startLon
-    private double destinationLon
-
-    POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
-        if (validateCoords(startLon, startLat, destinationLon, destinationLat)) {
-            double tmpLon = startLon
-            startLon = destinationLon
-            destinationLon = tmpLon
-
-            double tmpLat = startLat
-            startLat = destinationLat
-            destinationLat = tmpLat
-        }
-        this.startLat = startLat
-        this.destinationLat = destinationLat
-        this.startLon = startLon
-        this.destinationLon = destinationLon
-        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
-    }
-
-    POIApi(Point start, Point destination) {
-        this(start.lon, start.lat, destination.lon, destination.lat)
-    }
-
-    POIApi(Pair<Point, Point> pointPair) {
-        this(pointPair.a.lon, pointPair.a.lat, pointPair.b.lon, pointPair.b.lat)
-    }
-
-    /**
-     * @param startLon
-     * @param startLat
-     * @param destinationLon
-     * @param destinationLat
-     * @return swapIsNecessary
-     */
-    static boolean validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
-        Preconditions.checkNotNull(startLon)
-        Preconditions.checkNotNull(startLat)
-        Preconditions.checkNotNull(destinationLon)
-        Preconditions.checkNotNull(destinationLat)
-
-        if (startLat == destinationLat && destinationLon == startLon) {
-            throw new IllegalArgumentException("The start-position is equals to the destination-position.")
-        }
-
-        return !(startLon < destinationLon && startLat < destinationLat)
+    POIApi(BBox bbox) {
+        Preconditions.checkNotNull(bbox)
+        this.bbox = bbox
+        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=${bbox.toString()}]"
     }
 
     /**
@@ -90,8 +49,13 @@ class POIApi {
         success
     }
 
-    public Pair<Point, Point> getBBox() {
-        return new Pair<Point, Point>(new Point(startLon, startLat)
-                , new Point(destinationLon, destinationLat))
+    public BBox getBBox() {
+        this.bbox
+    }
+
+    public static BBox calcBBoxOfRoute(List<Point> route) {
+        List<Double> lats = route.stream().map({ point -> point.lat }).collect(Collectors.toList())
+        List<Double> lons = route.stream().map({ point -> point.lon }).collect(Collectors.toList())
+        new BBox(lons.min(), lats.min(), lons.max(), lats.max())
     }
 }

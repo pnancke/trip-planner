@@ -13,12 +13,10 @@ import groovy.json.JsonBuilder
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
-import trip.planner.osm.api.NominationApi
-import trip.planner.osm.api.POIApi
-import trip.planner.osm.api.Pair
-import trip.planner.osm.api.Point
+import trip.planner.osm.api.*
 import trip.planner.osm.model.Node
 import trip.planner.util.ActiveTimer
+import trip.planner.util.RouteHelper
 
 import static trip.planner.osm.api.ElkiWrapper.extractClusters
 import static trip.planner.osm.api.ElkiWrapper.filterOutliers
@@ -50,6 +48,8 @@ class HomeController {
                 try {
                     List<List<String>> routeCoordinates = getRouteCoordinates(rest, url)
                     List<double[]> poiCoordinates = getPOIs(startPoint, destPoint)
+                    log.info routeCoordinates
+                    log.info POIApi.calcBBoxOfRoute(RouteHelper.mapToPoints(routeCoordinates))
                     def startCoords = [startPoint.lat, startPoint.lon]
                     def json = new JsonBuilder()
                     json {
@@ -89,7 +89,7 @@ class HomeController {
 
     private static List<double[]> getPOIs(Point start, Point dest) {
         ActiveTimer timer = new ActiveTimer()
-        List<Node> nodes = new POIParser().parse(new POIApi(start.lon, start.lat, dest.lon, dest.lat))
+        List<Node> nodes = new POIParser().parse(new POIApi(new BBox(start.lon, start.lat, dest.lon, dest.lat)))
         timer.stopAndLog(log, "POI parsing.")
         timer.reset()
         List<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
