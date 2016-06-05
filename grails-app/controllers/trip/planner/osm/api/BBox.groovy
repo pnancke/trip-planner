@@ -1,6 +1,7 @@
 package trip.planner.osm.api
 
 import com.google.common.base.Preconditions
+import trip.planner.util.BBoxSplitter
 
 class BBox {
     Pair<Point, Point> bbox
@@ -69,6 +70,40 @@ class BBox {
 
     void setEnd(Point end) {
         this.bbox.b = end
+    }
+
+    /**
+     *
+     * @param differenceLon - difference in longitudinal direction
+     * @param differenceLat - difference in latitudinal direction
+     * @return bboxes - a list of bboxes
+     */
+    List<BBox> split(double differenceLon, double differenceLat) {
+        List<Double> lons = BBoxSplitter.splitCoords(this.bbox.getA().lon, this.bbox.getB().lon, differenceLon)
+        List<Double> lats = BBoxSplitter.splitCoords(this.bbox.getA().lat, this.bbox.getB().lat, differenceLat)
+        BBoxSplitter.mergeLists(lons, lats)
+    }
+
+    /**
+     *
+     * @param difference - difference in longitudinal and latitudinal direction
+     * @return bboxes - a list of bboxes
+     */
+    List<BBox> split(double difference) {
+        List<Double> lons = BBoxSplitter.splitCoords(this.bbox.getA().lon, this.bbox.getB().lon, difference)
+        List<Double> lats = BBoxSplitter.splitCoords(this.bbox.getA().lat, this.bbox.getB().lat, difference)
+        BBoxSplitter.mergeLists(lons, lats)
+    }
+
+    /**
+     *
+     * @param pieces - the pieces in latitudinal or longitudinal direction
+     * @return bboxes - a list of bboxes
+     */
+    List<BBox> split(int pieces) {
+        double diffLon = this.bbox.getB().lon - this.bbox.getA().lon
+        double diffLat = this.bbox.getB().lat - this.bbox.getA().lat
+        split(diffLon / pieces, diffLat / pieces)
     }
 
     boolean equals(o) {
