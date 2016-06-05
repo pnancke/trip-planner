@@ -46,9 +46,6 @@ class Pair<A, B> {
     }
 
     public String toString() {
-        return "Pair{" +
-                "a=" + a +
-                ", b=" + b +
-                '}\n';
+        return "{" + a + ", " + b + '}';
     }
 }
