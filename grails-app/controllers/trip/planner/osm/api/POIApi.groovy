@@ -10,7 +10,7 @@ import trip.planner.util.ActiveTimer
 
 import java.util.stream.Collectors
 
-class POIApi {
+class POIApi implements Api {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
 
@@ -31,10 +31,7 @@ class POIApi {
         url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=${bbox.toString()}]"
     }
 
-    /**
-     *
-     * @return success - if the POIApi xmlContent is valid or not
-     */
+    @Override
     boolean doRequest() {
         ActiveTimer timer = new ActiveTimer()
 
