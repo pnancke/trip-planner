@@ -42,4 +42,14 @@ class POIApiSpec extends Specification {
         api.getBBox().getStart() == new Point(0.0, 100.0)
         api.getBBox().getEnd() == new Point(50.0, 50.0)
     }
+
+    def "calc resulting bbox works"() {
+        when:
+        List<BBox> box = POIApi.calcResultingBBox(
+                [new Point(1.2, 1.5), new Point(-10.0, 1.5), new Point(100.0, 100.0)])
+        println box
+
+        then:
+        box.size() == 3
+    }
 }

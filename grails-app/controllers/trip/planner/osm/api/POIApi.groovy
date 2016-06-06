@@ -13,7 +13,6 @@ import java.util.stream.Collectors
 class POIApi implements Api {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
-
     private static Log log = LogFactory.getLog(POIApi.class)
 
     private String url
@@ -25,7 +24,7 @@ class POIApi implements Api {
     String xmlContent
     HttpStatus status
 
-    POIApi(BBox bbox) {
+    public POIApi(BBox bbox) {
         Preconditions.checkNotNull(bbox)
         this.bbox = bbox
         url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=${bbox.toString()}]"
@@ -54,5 +53,16 @@ class POIApi implements Api {
         List<Double> lats = route.stream().map({ point -> point.lat }).collect(Collectors.toList())
         List<Double> lons = route.stream().map({ point -> point.lon }).collect(Collectors.toList())
         new BBox(lons.min(), lats.min(), lons.max(), lats.max())
+    }
+
+    public static List<BBox> calcResultingBBox(List<Point> route) {
+        BBox bbox = calcBBoxOfRoute(route)
+        List<BBox> bboxes = bbox.split(10)
+        List resultingBBoxes = bboxes.stream().filter({
+            box ->
+                route.stream().anyMatch(
+                        { r -> box.contains(r) })
+        }).collect(Collectors.toList())
+        resultingBBoxes
     }
 }

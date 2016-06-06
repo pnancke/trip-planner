@@ -106,6 +106,13 @@ class BBox {
         split(diffLon / pieces, diffLat / pieces)
     }
 
+    boolean contains(Point point) {
+        return (start.lon <= point.lon
+                && start.lat <= point.lat
+                && end.lon >= point.lon
+                && end.lat >= point.lat)
+    }
+
     boolean equals(o) {
         if (this.is(o)) return true
         if (getClass() != o.class) return false

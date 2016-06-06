@@ -39,8 +39,11 @@ class POIParser {
                     }
 
                     if (request.nodes == null) {
-                        log.info "No nodes found in given bbox: $api.BBox"
-                        return Collections.emptyList()
+                        log.info "No nodes found in given bbox: $api.BBox, try: $i"
+                        if (i == 3) {
+                            return Collections.emptyList()
+                        }
+                        continue;
                     }
 
                     return request.nodes

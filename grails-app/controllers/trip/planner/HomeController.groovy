@@ -46,10 +46,19 @@ class HomeController {
                     "&tlat=$destPoint.lat&tlon=$destPoint.lon"
             for (int i = 1; i < 4; i++) {
                 try {
+                    ActiveTimer timer = new ActiveTimer()
                     List<List<String>> routeCoordinates = getRouteCoordinates(rest, url)
-                    List<double[]> poiCoordinates = getPOIs(startPoint, destPoint)
-                    log.info routeCoordinates
-                    log.info POIApi.calcBBoxOfRoute(RouteHelper.mapToPoints(routeCoordinates))
+                    List<BBox> bboxes = POIApi.calcResultingBBox(
+                            RouteHelper.mapToPoints(routeCoordinates))
+                    log.info "calculate ${bboxes.size()} poi-bboxes"
+                    List<double[]> poiCoordinates = new ArrayList<>()
+                    bboxes.each {
+                        List<double[]> pois = getPOIs(it)
+                        if (!pois.isEmpty()) {
+                            poiCoordinates.addAll(pois)
+                        }
+                    }
+                    timer.stopAndLog(log, "routing and clustering")
                     def startCoords = [startPoint.lat, startPoint.lon]
                     def json = new JsonBuilder()
                     json {
@@ -87,10 +96,14 @@ class HomeController {
         list
     }
 
-    private static List<double[]> getPOIs(Point start, Point dest) {
+    private static List<double[]> getPOIs(BBox bbox) {
         ActiveTimer timer = new ActiveTimer()
-        List<Node> nodes = new POIParser().parse(new POIApi(new BBox(start.lon, start.lat, dest.lon, dest.lat)))
+        List<Node> nodes = new POIParser().parse(new POIApi(bbox))
         timer.stopAndLog(log, "POI parsing.")
+        if (nodes.isEmpty()) {
+            log.info "no pois to cluster"
+            return Collections.emptyList()
+        }
         timer.reset()
         List<double[]> poiCoordinates = extractCoordinatesWithoutOutliers(nodes)
         timer.stopAndLog(log, "clustering.")

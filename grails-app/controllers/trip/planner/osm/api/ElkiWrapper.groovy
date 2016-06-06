@@ -14,30 +14,37 @@ import de.lmu.ifi.dbs.elki.distance.distancefunction.geo.LatLngDistanceFunction
 import de.lmu.ifi.dbs.elki.logging.LoggingConfiguration
 import de.lmu.ifi.dbs.elki.math.geodesy.SphericalVincentyEarthModel
 import de.lmu.ifi.dbs.elki.math.random.RandomFactory
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import trip.planner.osm.model.Node
 
 class ElkiWrapper {
 
-    static Pair<Database, ArrayList<Cluster<KMeansModel>>> extractClusters(ArrayList<Node> nodes,
-                                                                           int kMeansPartitions,
-                                                                           int maxKMeansIterations) {
+    private static final Log log = LogFactory.getLog(ElkiWrapper.class)
+
+    static Pair<Database, List<Cluster<KMeansModel>>> extractClusters(List<Node> nodes,
+                                                                      int kMeansPartitions,
+                                                                      int maxKMeansIterations) {
+        if (nodes.isEmpty()) {
+            log.info "empty node-list are given"
+        }
         LoggingConfiguration.setStatistics()
         double[][] data = convertNodeList(nodes)
         StaticArrayDatabase db = createDatabase(data)
         Clustering<KMeansModel> c = createKMeans(kMeansPartitions, maxKMeansIterations).run(db)
-        ArrayList<Cluster<KMeansModel>> clusters = c.getAllClusters()
-        def pair = new Pair<Database, ArrayList<Cluster<KMeansModel>>>(db, clusters)
+        List<Cluster<KMeansModel>> clusters = c.getAllClusters()
+        def pair = new Pair<Database, List<Cluster<KMeansModel>>>(db, clusters)
         pair
     }
 
-    public static ArrayList<Cluster> filterOutliers(ArrayList<Cluster> allClusters,
-                                                    int kMeansPartitions,
-                                                    double minMeanPercentageClusterSize) {
+    public static List<Cluster> filterOutliers(List<Cluster> allClusters,
+                                               int kMeansPartitions,
+                                               double minMeanPercentageClusterSize) {
 
         int allPointsCount = 0
         allClusters.each { allPointsCount += it.size() }
         int averageSize = allPointsCount / kMeansPartitions
-        ArrayList<Cluster> filteredClusters = new ArrayList<>()
+        List<Cluster> filteredClusters = new ArrayList<>()
         allClusters.each {
             if (it.size() > minMeanPercentageClusterSize * averageSize) {
                 filteredClusters.add(it)
@@ -60,7 +67,7 @@ class ElkiWrapper {
         db
     }
 
-    private static double[][] convertNodeList(ArrayList<Node> nodes) {
+    private static double[][] convertNodeList(List<Node> nodes) {
         double[][] data = new double[nodes.size()][2]
         for (int i = 0; i < data.length; i++) {
             data[i][0] = nodes.get(i).getLat()
