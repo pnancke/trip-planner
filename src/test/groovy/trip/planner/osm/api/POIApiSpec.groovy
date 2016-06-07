@@ -45,7 +45,7 @@ class POIApiSpec extends Specification {
 
     def "calc resulting bbox works"() {
         when:
-        List<BBox> box = POIApi.calcResultingBBox(
+        List<BBox> box = POIApi.calcResultingBBoxes(
                 [new Point(1.2, 1.5), new Point(-10.0, 1.5), new Point(100.0, 100.0)])
         println box
 

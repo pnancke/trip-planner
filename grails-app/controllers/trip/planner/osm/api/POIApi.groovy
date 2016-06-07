@@ -19,11 +19,12 @@ class POIApi implements Api {
     private RestBuilder rest = new RestBuilder()
     private ResponseEntity response
     private BBox bbox
+    private Closure<File> writer
 
     String info
+
     String xmlContent
     HttpStatus status
-
     public POIApi(BBox bbox) {
         Preconditions.checkNotNull(bbox)
         this.bbox = bbox
@@ -49,15 +50,29 @@ class POIApi implements Api {
         this.bbox
     }
 
+    /**
+     * @return closure
+     * that writes the xml contant to a file and return if the process succeeds or not
+     */
+    Closure<File> getWriter() {
+        Preconditions.checkNotNull(writer)
+        return writer
+    }
+
+    void setWriter(Closure<File> fileWriteClos) {
+        Preconditions.checkNotNull(fileWriteClos)
+        this.writer = fileWriteClos
+    }
+
     public static BBox calcBBoxOfRoute(List<Point> route) {
         List<Double> lats = route.stream().map({ point -> point.lat }).collect(Collectors.toList())
         List<Double> lons = route.stream().map({ point -> point.lon }).collect(Collectors.toList())
         new BBox(lons.min(), lats.min(), lons.max(), lats.max())
     }
 
-    public static List<BBox> calcResultingBBox(List<Point> route) {
+    public static List<BBox> calcResultingBBoxes(List<Point> route) {
         BBox bbox = calcBBoxOfRoute(route)
-        List<BBox> bboxes = bbox.split(10)
+        List<BBox> bboxes = bbox.splitIntoPieces(10)
         List resultingBBoxes = bboxes.stream().filter({
             box ->
                 route.stream().anyMatch(

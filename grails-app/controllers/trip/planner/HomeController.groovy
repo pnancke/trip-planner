@@ -48,7 +48,7 @@ class HomeController {
                 try {
                     ActiveTimer timer = new ActiveTimer()
                     List<List<String>> routeCoordinates = getRouteCoordinates(rest, url)
-                    List<BBox> bboxes = POIApi.calcResultingBBox(
+                    List<BBox> bboxes = POIApi.calcResultingBBoxes(
                             RouteHelper.mapToPoints(routeCoordinates))
                     log.info "calculate ${bboxes.size()} poi-bboxes"
                     List<double[]> poiCoordinates = new ArrayList<>()

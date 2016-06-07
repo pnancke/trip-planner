@@ -43,7 +43,7 @@ class POIParser {
                         if (i == 3) {
                             return Collections.emptyList()
                         }
-                        continue;
+                        continue
                     }
 
                     return request.nodes

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API">
+    <note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.
+    </note>
+    <meta osm_base="2016-06-06T15:57:02Z"/>
+
+    <node id="245981373" lat="52.5094982" lon="13.3765983">
+        <tag k="name" v="Potsdamer Platz"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="yes"/>
+    </node>
+    <node id="417346627" lat="52.5075460" lon="13.3903610">
+        <tag k="int_name" v="Checkpoint Charlie"/>
+        <tag k="name" v="Checkpoint Charlie"/>
+        <tag k="name:ja" v="チェックポイント・チャーリー"/>
+        <tag k="name:ko" v="체크포인트 찰리"/>
+        <tag k="name:ru" v="Чекпойнт Чарли"/>
+        <tag k="name:tr" v="Çarli Kontrol Noktası"/>
+        <tag k="name:zh" v="查理檢查哨"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="website" v="http://www.berlin.de/orte/sehenswuerdigkeiten/checkpoint-charlie/"/>
+        <tag k="wheelchair" v="yes"/>
+        <tag k="wikipedia" v="de:Checkpoint Charlie"/>
+    </node>
+    <node id="2146790531" lat="52.5058922" lon="13.4270097">
+        <tag k="name" v="Baumhaus an der Mauer"/>
+        <tag k="phone" v="+49 176 21976612"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="no"/>
+        <tag k="wikipedia" v="de:Baumhaus an der Mauer"/>
+    </node>
+    <node id="2862216432" lat="52.5028889" lon="13.4041944">
+        <tag k="coordinates" v="N 52°30'10.4&quot; E 13°24'15.1&quot;"/>
+        <tag k="name" v="Flächenschwerpunkt Berlin"/>
+        <tag k="name:en" v="geographical center of Berlin"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="2966005919" lat="52.5085256" lon="13.3796834">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:housenumber" v="7"/>
+        <tag k="addr:postcode" v="10117"/>
+        <tag k="addr:street" v="Erna-Berger-Straße"/>
+        <tag k="addr:suburb" v="Mitte"/>
+        <tag k="description" v="Beobachtungsturm"/>
+        <tag k="height" v="6"/>
+        <tag k="heritage" v="4"/>
+        <tag k="heritage:operator" v="lda"/>
+        <tag k="historic" v="yes"/>
+        <tag k="image" v="http://commons.wikimedia.org/wiki/File:Berlin_Wall_Watch-Tower_Typ_BT-11_2_apel.JPG"/>
+        <tag k="man_made" v="tower"/>
+        <tag k="name" v="Wachturm"/>
+        <tag k="name:en" v="Berlin Wall Watchtower"/>
+        <tag k="name:fr" v="Mirador du mur de Berlin"/>
+        <tag k="old_name" v="Berliner Mauer Grenzwachturm"/>
+        <tag k="ref" v="BT-6"/>
+        <tag k="start_date" v="1966"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="tower:type" v="watchtower"/>
+        <tag k="website" v="http://www.berlinwallexpo.de/"/>
+    </node>
+    <node id="4161715190" lat="52.4997310" lon="13.4229686">
+        <tag k="name" v="Cosmonaut"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="585473092" lat="52.5135275" lon="13.4115189">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:postcode" v="10179"/>
+        <tag k="addr:street" v="Märkisches Ufer"/>
+        <tag k="addr:suburb" v="Mitte"/>
+        <tag k="ft_link" v="www.freietonne.de?edit=16812"/>
+        <tag k="name" v="Historischer Hafen Berlin"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="website" v="http://www.historischer-hafen-berlin.de/"/>
+    </node>
+    <node id="1296612901" lat="52.5279805" lon="13.4267984">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:postcode" v="10249"/>
+        <tag k="addr:street" v="Am Friedrichshain/ Friedenstraße (im Volkspark Friedrichshain)"/>
+        <tag k="addr:suburb" v="Friedrichshain"/>
+        <tag k="contact:website" v="http://www.berlin.de/orte/sehenswuerdigkeiten/maerchenbrunnen"/>
+        <tag k="historic" v="memorial"/>
+        <tag k="name" v="Märchenbrunnen"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="limited"/>
+        <tag k="wikipedia" v="de:Märchenbrunnen im Volkspark Friedrichshain"/>
+    </node>
+    <node id="2211152982" lat="52.5124731" lon="13.3854968">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:housenumber" v="53"/>
+        <tag k="addr:postcode" v="10117"/>
+        <tag k="addr:street" v="Mauerstraße"/>
+        <tag k="addr:suburb" v="Mitte"/>
+        <tag k="name" v="BMAS"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="yes"/>
+    </node>
+    <node id="4121801694" lat="52.5188055" lon="13.3648485">
+        <tag k="name" v="Haus der Kulturen der Welt"/>
+        <tag k="toilets:wheelchair" v="yes"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="yes"/>
+    </node>
+    <node id="4161683990" lat="52.5243147" lon="13.4023187">
+        <tag k="name" v="Death Chicken Alley"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4171939294" lat="52.5169658" lon="13.3888987">
+        <tag k="name" v="Dealer"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4214959522" lat="52.5137579" lon="13.4106915">
+        <tag k="addr:street" v="Inselbrücke"/>
+        <tag k="email" v="hafenmeister@historischer-hafen-berlin.de"/>
+        <tag k="name" v="Anlegestelle Historischer Hafen Berlin"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="website" v="http://www.historischer-hafen-berlin.de/anlegesteg.html"/>
+    </node>
+    <node id="4227809694" lat="52.5190755" lon="13.4009999">
+        <tag k="name" v="Berlin Cathdral"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4227818792" lat="52.5162709" lon="13.3777228">
+        <tag k="name" v="Brandenburg Gate"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4227858189" lat="52.5216659" lon="13.3950332">
+        <tag k="name" v="Museum Island"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="482838975" lat="52.4874449" lon="13.4690312">
+        <tag k="historic" v="memorial"/>
+        <tag k="name" v="Sowjetisches Ehrenmal"/>
+        <tag k="name:en" v="Soviet war memorial"/>
+        <tag k="name:ru" v="памятник воину-освободителю"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="limited"/>
+    </node>
+    <node id="492849637" lat="52.5076615" lon="13.4545370">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:housenumber" v="99"/>
+        <tag k="addr:postcode" v="10245"/>
+        <tag k="addr:street" v="Revaler Straße"/>
+        <tag k="addr:suburb" v="Friedrichshain"/>
+        <tag k="amenity" v="nightclub"/>
+        <tag k="contact:website" v="http://www.raw-tempel.de/"/>
+        <tag k="name" v="RAW 99"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="limited"/>
+    </node>
+    <node id="1220023801" lat="52.5039582" lon="13.4504435">
+        <tag k="name" v="Oberbaum City (Industriedenkmal)"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="2574346168" lat="52.4957694" lon="13.4467908">
+        <tag k="name" v="Public Artwork"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4214977994" lat="52.5004716" lon="13.4517933">
+        <tag k="name" v="Lastkahn Agnes"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4215048703" lat="52.4976092" lon="13.4557973">
+        <tag k="addr:street" v="Uferpromenade"/>
+        <tag k="name" v="Schiffswrack Dr. Ingrid Wengler"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4215688690" lat="52.5084047" lon="13.4484701">
+        <tag k="addr:housenumber" v="1"/>
+        <tag k="addr:postcode" v="10243"/>
+        <tag k="addr:street" v="Helsingforser Platz"/>
+        <tag k="email" v="fotogalerie@kulturring.org"/>
+        <tag k="name" v="Fotogalerie Friedrichshain"/>
+        <tag k="opening_hours" v="Tu-We 14:00-18:00; Th 20:00-22:00; Fr-Sa 14:00-18:00"/>
+        <tag k="phone" v="0302961684"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="website" v="https://www.facebook.com/fotogaleriefriedrichshain/"/>
+    </node>
+    <node id="4217116989" lat="52.5015388" lon="13.4873840">
+        <tag k="addr:housenumber" v="1"/>
+        <tag k="addr:postcode" v="10317"/>
+        <tag k="addr:street" v="Fischerstraße"/>
+        <tag k="name" v="Zilles Kiez Wandgraffiti und Gedenktafel"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="4227856090" lat="52.5059802" lon="13.4378908">
+        <tag k="name" v="East Side Gallery"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="1270777093" lat="52.5150118" lon="13.4439068">
+        <tag k="name" v="Hochhaus an der Weberwiese"/>
+        <tag k="tourism" v="attraction"/>
+        <tag k="wheelchair" v="limited"/>
+    </node>
+    <node id="2533696976" lat="52.5216087" lon="13.5085923">
+        <tag k="name" v="Klanghölzer"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="2917519074" lat="52.5141994" lon="13.4880687">
+        <tag k="former:operator:wikipedia" v="de:Ministerium für Staatssicherheit"/>
+        <tag k="name" v="ehem. Ministerium für Staatssicherheit"/>
+        <tag k="name:de" v="ehem. Ministerium für Staatssicherheit"/>
+        <tag k="name:en" v="former headquarters of the East German secret service &quot;Stasi&quot;"/>
+        <tag k="name:pl" v="Ministerstwo Bezpieczeństwa Państwowego NRD"/>
+        <tag k="name:ru" v="Министерство государственной безопасности ГДР"/>
+        <tag k="name:uk" v="Штазі"/>
+        <tag k="name:zh" v="史塔西"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+    <node id="3105395340" lat="52.5214887" lon="13.4866893">
+        <tag k="addr:city" v="Berlin"/>
+        <tag k="addr:country" v="DE"/>
+        <tag k="addr:housenumber" v="64-66"/>
+        <tag k="addr:postcode" v="10365"/>
+        <tag k="addr:street" v="Ruschestraße"/>
+        <tag k="addr:suburb" v="Lichtenberg"/>
+        <tag k="contact:email" v="info@the-room-berlin.com"/>
+        <tag k="contact:website" v="http://www.the-room-berlin.com"/>
+        <tag k="name" v="THE ROOM - Live Escape Game Berlin"/>
+        <tag k="tourism" v="attraction"/>
+    </node>
+
+</osm>
