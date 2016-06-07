@@ -11,7 +11,7 @@ import trip.planner.util.ActiveTimer
 class POIApi implements Api {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
-    private static Log log = LogFactory.getLog(POIApi.class)
+    private static final Log log = LogFactory.getLog(POIApi.class)
 
     private String url
     private RestBuilder rest = new RestBuilder()

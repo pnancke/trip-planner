@@ -39,10 +39,11 @@
     }
 
     function getRoute(start, destination, additionalTravelTime) {
+        var userLang = navigator.language || navigator.userLanguage;
         $('#submit-route-button').prop('disabled', true);
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
-                + '&additionalTravelTime=' + additionalTravelTime, {}, function (data) {
+                + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang, {}, function (data) {
         }).done(function (response) {
             $('#submit-route-button').prop('disabled', false);
             stopSpinner();
@@ -53,7 +54,16 @@
                 alert("There is no route between the given locations!");
             } else {
                 drawLine(responseJson.route, responseJson.startCoordinates);
-                addMarkers(responseJson.pois);
+                var poiClusters = responseJson.pois;
+                var pois = [];
+                var clusterCenters = [];
+                clearMarkers();
+                for (var i = 0; i < poiClusters.length; i++) {
+                    pois.push.apply(pois, poiClusters[i].points);
+                    clusterCenters.push(poiClusters[i].clusterCenter);
+                    drawCircle(poiClusters[i].clusterCenter.lat, poiClusters[i].clusterCenter.lon);
+                }
+                addMarkers(pois);
             }
         });
     }

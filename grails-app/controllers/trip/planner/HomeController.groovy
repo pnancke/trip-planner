@@ -1,37 +1,30 @@
 package trip.planner
 
-import de.lmu.ifi.dbs.elki.data.Cluster
-import de.lmu.ifi.dbs.elki.data.DoubleVector
-import de.lmu.ifi.dbs.elki.data.NumberVector
-import de.lmu.ifi.dbs.elki.data.model.KMeansModel
-import de.lmu.ifi.dbs.elki.data.type.TypeUtil
-import de.lmu.ifi.dbs.elki.database.Database
-import de.lmu.ifi.dbs.elki.database.ids.DBIDIter
-import de.lmu.ifi.dbs.elki.database.relation.Relation
+import com.google.common.base.Joiner
 import grails.plugins.rest.client.RestBuilder
 import groovy.json.JsonBuilder
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
-import trip.planner.osm.api.BBox
+import trip.planner.osm.api.NominationApi
+import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
+import trip.planner.osm.model.PointCluster
+import trip.planner.osm.api.BBox
 import trip.planner.util.*
 
-import static trip.planner.osm.api.ElkiWrapper.extractClusters
-import static trip.planner.osm.api.ElkiWrapper.filterOutliers
+import static java.util.Collections.emptyList
+import static trip.planner.util.ClusterHelper.extractCoordinateClusterWithoutOutliers
 
 class HomeController {
 
-    private static int K_MEANS_CLUSTER_SIZE = 10
-    private static final int MAX_K_MEANS_ITERATIONS = 50
-    private static final BigDecimal MIN_MEAN_PERCENTAGE_CLUSTER_SIZE = 0.8
     private static Log log = LogFactory.getLog(HomeController.class)
 
     def index() {}
 
-    def getRoute(String start, String destination, int additionalTravelTime) {
+    def getRoute(String start, String destination, int additionalTravelTime, String lang) {
         Point startPoint = NominationUtils.extractCoordinates(start)
         Point destPoint = NominationUtils.extractCoordinates(destination)
 
@@ -57,25 +50,26 @@ class HomeController {
         for (int i = 1; i < 4; i++) {
             try {
                 ActiveTimer timer = new ActiveTimer()
-                Pair<Double, List<List<String>>> routeInfos = RouteUtils.getRouteInfos(rest, url)
-                List<List<String>> routeCoordinates = routeInfos.getB()
-                List<BBox> bboxes = POIUtils.calcResultingBBox(ListUtils.mapToPoints(routeCoordinates), routeInfos.getA())
+                List<String> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
+                //TODO replace 100 with actual travel time
+                List<BBox> bboxes = POIUtils.calcResultingBBox(ListUtils.mapToPoints(routeCoordinates), 100)
 
                 log.info "calculate ${bboxes.size()} poi-bboxes"
-                List<double[]> poiCoordinates = new ArrayList<>()
+                List<PointCluster> poiCoordinates = new ArrayList<>()
                 bboxes.each {
-                    List<double[]> pois = POIUtils.getPOIs(it)
+                    List<PointCluster> pois = getPOIs(startPoint, destPoint)
                     if (!pois.isEmpty()) {
                         poiCoordinates.addAll(pois)
                     }
                 }
                 timer.stopAndLog(log, "routing and clustering")
 
+                List<List<String>> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint, poiCoordinates.clusterCenter, lang)
                 def startCoords = [startPoint.lat, startPoint.lon]
                 def json = new JsonBuilder()
                 json {
                     success true
-                    route routeCoordinates
+                    route routingCoordinatesWithWaypoints
                     pois poiCoordinates
                     startCoordinates startCoords
                 }
@@ -89,7 +83,7 @@ class HomeController {
         render createErrorMessage("Error: Unable to generate route. Please try again later!")
     }
 
-    private String createErrorMessage(String message) {
+    public String createErrorMessage(String message) {
         def json = new JsonBuilder()
         json {
             success false
@@ -98,24 +92,42 @@ class HomeController {
         json.toString()
     }
 
-    public static List<double[]> extractCoordinatesWithoutOutliers(List<Node> nodes) {
-        Pair<Database, List<Cluster<KMeansModel>>> pair = extractClusters(nodes
-                , K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
-        Database db = pair.getA()
-        List<Cluster> clusters = pair.getB()
-        List<Cluster> filteredClusters = filterOutliers(clusters,
-                K_MEANS_CLUSTER_SIZE,
-                MIN_MEAN_PERCENTAGE_CLUSTER_SIZE)
-
-        filteredClusters.each { it.getIDs() }
-        Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD);
-        List<double[]> poiCoordinates = new ArrayList<>()
-        filteredClusters.each { Cluster<KMeansModel> clu ->
-            for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
-                DoubleVector v = rel.get(it) as DoubleVector
-                poiCoordinates.add(v.getValues())
-            }
+    private static List<List<String>> getRouteCoordinates(RestBuilder rest, Point start,
+                                                          Point destination, List<Point> via, String lang) {
+        ActiveTimer timer = new ActiveTimer()
+        List<String> visStrings = new ArrayList<>()
+        via.each {
+            visStrings.add(it.lon + "," + it.lat)
         }
-        poiCoordinates
+        Joiner joiner = Joiner.on(' ').skipNulls()
+        String viaStrings = joiner.join(visStrings)
+
+        String url = "http://openls.geog.uni-heidelberg.de/route?start=$start.lon,$start.lat&end=$destination.lon," +
+                "$destination.lat&via=$viaStrings&lang=$lang&distunit=KM&routepref=Car&weighting=Recommended&useTMC=false" +
+                "&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false"
+        log.info("Routing URL with waypoints: $url")
+
+        def get = rest.get(url)
+        def xml = new XmlSlurper().parseText(get.responseEntity.body.toString())
+        def travelTime = xml.'Response'.'DetermineRouteResponse'.'RouteSummary'.'TotalTime'
+        log.info "found a route with a travel-time of: $travelTime"
+        LinkedList routeCoordinates = xml.'Response'.'DetermineRouteResponse'.'RouteGeometry'.'LineString'.'pos'.list()
+
+        timer.stopAndLog(log, "creating route with waypoints")
+        routeCoordinates.collect { it.toString().tokenize(" ") }
+    }
+
+    private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
+        ActiveTimer timer = new ActiveTimer()
+        List<Node> nodes = new POIParser().parse(new POIApi(startLatLon.lon, startLatLon.lat,
+                destLatLon.lon, destLatLon.lat))
+        timer.stopAndLog(log, "POI parsing.")
+        timer.reset()
+        List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(nodes)
+        timer.stopAndLog(log, "clustering.")
+
+        log.info "found ${nodes.size()} nodes"
+        log.info "after clustering, ${poiClusters.size()} cluster are given"
+        poiClusters
     }
 }

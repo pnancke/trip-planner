@@ -44,7 +44,7 @@ class NominationApi implements Api {
             Double lat = Double.parseDouble(latString)
             Double lon = Double.parseDouble(lonString)
             this.point = new Point(lon, lat)
-            success = status == HttpStatus.OK && !this.point.lon.naN && !this.point.lat.naN
+            success = status == HttpStatus.OK && !lat.naN && !lon.naN
         }
         timer.stopAndLog(log)
         success
