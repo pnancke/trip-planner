@@ -17,7 +17,7 @@ class NominationApi {
     String info
     String xmlContent
     HttpStatus status
-    Pair<Double, Double> latLon
+    Point point
 
     NominationApi(String q) {
         url = "http://nominatim.openstreetmap.org/search?q=$q&format=xml&addressdetails=0&limit=1"
@@ -46,8 +46,8 @@ class NominationApi {
         } else {
             Double lat = Double.parseDouble(latString)
             Double lon = Double.parseDouble(lonString)
-            this.latLon = new Pair<Double, Double>(lat, lon)
-            success = status == HttpStatus.OK && !this.latLon.a.naN && !this.latLon.b.naN
+            this.point = new Point(lon, lat)
+            success = status == HttpStatus.OK && !lat.naN && !lon.naN
         }
         timer.stopAndLog(log)
         success

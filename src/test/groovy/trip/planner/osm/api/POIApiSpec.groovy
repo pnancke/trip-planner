@@ -5,7 +5,7 @@ import spock.lang.Specification
 class POIApiSpec extends Specification {
 
 
-    public static final String VALIDATION_ERROR = "The start-position is equals to the destination-position."
+    public static final String VALIDATION_ERROR = "The start-position equals the destination-position."
     public static final Pair<Point, Point> LOWER_THAN_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 0))
     public static final Pair<Point, Point> HIGHER_THAN_PAIR = new Pair<Point, Point>(new Point(0, 0), new Point(50, 50))
     public static final Pair<Point, Point> MIXED_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 100))

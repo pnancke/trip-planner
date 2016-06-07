@@ -64,7 +64,7 @@
 
 .form-wrapper button:active,
 .form-wrapper button:focus {
-    background: #c42f2f;
+    background: #60ae44;
     outline: 0;
 }
 
@@ -73,18 +73,18 @@
     position: absolute;
     border-width: 8px 8px 8px 0;
     border-style: solid solid solid none;
-    border-color: transparent #d83c3c transparent;
+    border-color: transparent #60ae44 transparent;
     top: 12px;
     left: -6px;
 }
 
 .form-wrapper button:hover:before {
-    border-right-color: #e54040;
+    border-right-color: #60ae44;
 }
 
 .form-wrapper button:focus:before,
 .form-wrapper button:active:before {
-    border-right-color: #c42f2f;
+    border-right-color: #60ae44;
 }
 
 .form-wrapper button::-moz-focus-inner { /* remove extra button spacing for Mozilla Firefox */
