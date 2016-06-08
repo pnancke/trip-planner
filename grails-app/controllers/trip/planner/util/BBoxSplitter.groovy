@@ -4,8 +4,6 @@ import trip.planner.osm.api.BBox
 import trip.planner.osm.api.Point
 
 class BBoxSplitter {
-    static final Double DIFFERENCE_BETWEEN_POINTS = 1.0
-
     static List<BBox> mergeLists(List<Double> lons, List<Double> lats) {
         if (lons.size() == 0 || lats.size() == 0) {
             return Collections.emptyList()
@@ -25,9 +23,10 @@ class BBoxSplitter {
         if (difference <= 0.0) {
             throw new IllegalArgumentException("Difference $difference is equals 0 or negative!")
         }
+        println "start: $start, destination: $destination, difference: $difference"
         List<Double> coords = new ArrayList<>()
         if (destination - start > difference) {
-            for (double i = start; i < destination; i++) {
+            for (double i = start; i < destination; i = i + difference) {
                 coords.add(i)
             }
             coords.add(destination)
