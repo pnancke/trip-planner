@@ -67,7 +67,7 @@ class ClusterHelper {
     }
 
     public static List<PointCluster> extractCoordinateClusterWithoutOutliers(List<Node> nodes) {
-        Pair<Database, ArrayList<Cluster<KMeansModel>>> pair =
+        Pair<Database, List<Cluster<KMeansModel>>> pair =
                 extractClusters(convert(nodes), K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
         List<PointCluster> unfilteredClusters = convert(pair)
         List<PointCluster> filteredClusters = filterOutliers(unfilteredClusters,

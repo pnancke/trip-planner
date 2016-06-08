@@ -2,12 +2,8 @@ package trip.planner.util
 
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import trip.planner.HomeController
-import trip.planner.POIParser
 import trip.planner.osm.api.BBox
-import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Point
-import trip.planner.osm.model.Node
 
 import java.util.stream.Collectors
 
@@ -73,26 +69,10 @@ class POIUtils {
         } else if (boundCheck(1000, Integer.MAX_VALUE, value)) {
             throw new IllegalArgumentException("Given traveltime $value is out of Range.")
         }
+        null
     }
 
     private static boolean boundCheck(int lower, int higher, double value) {
         return (value.toInteger() >= lower) && (value.toInteger() <= higher)
-    }
-
-    public static List<double[]> getPOIs(BBox bbox) {
-        ActiveTimer timer = new ActiveTimer()
-        List<Node> nodes = new POIParser().parse(new POIApi(bbox))
-        timer.stopAndLog(log, "POI parsing.")
-        if (nodes.isEmpty()) {
-            log.info "no pois to cluster"
-            return Collections.emptyList()
-        }
-        timer.reset()
-        List<double[]> poiCoordinates = HomeController.extractCoordinatesWithoutOutliers(nodes)
-        timer.stopAndLog(log, "clustering.")
-
-        log.info "found ${nodes.size()} nodes"
-        log.info "after clustering, ${poiCoordinates.size()} nodes are given"
-        poiCoordinates
     }
 }

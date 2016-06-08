@@ -6,14 +6,15 @@ import groovy.json.JsonBuilder
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
-import trip.planner.osm.api.NominationApi
+import trip.planner.osm.api.BBox
 import trip.planner.osm.api.POIApi
-import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
 import trip.planner.osm.model.PointCluster
-import trip.planner.osm.api.BBox
-import trip.planner.util.*
+import trip.planner.util.ActiveTimer
+import trip.planner.util.ListUtils
+import trip.planner.util.NominationUtils
+import trip.planner.util.POIUtils
 
 import static java.util.Collections.emptyList
 import static trip.planner.util.ClusterHelper.extractCoordinateClusterWithoutOutliers
@@ -35,22 +36,20 @@ class HomeController {
         } else if (destPoint == null) {
             render createErrorMessage("Error: Unable to find '$destination'!")
         } else {
-            renderRouteRequest(startPoint, destPoint, additionalTravelTime)
+            renderRouteRequest(startPoint, destPoint, additionalTravelTime, lang)
         }
     }
 
-    private void renderRouteRequest(Point startPoint, Point destPoint, int additionalTravelTime) {
+    private void renderRouteRequest(Point startPoint, Point destPoint, int additionalTravelTime, String lang) {
         if (startPoint.equals(destPoint)) {
             render createErrorMessage("Error: Unable to generate route, given places are equal.")
             return
         }
         RestBuilder rest = new RestBuilder()
-        def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$startPoint.lat&flon=$startPoint.lon" +
-                "&tlat=$destPoint.lat&tlon=$destPoint.lon"
         for (int i = 1; i < 4; i++) {
             try {
                 ActiveTimer timer = new ActiveTimer()
-                List<String> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
+                List<List<String>> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
                 //TODO replace 100 with actual travel time
                 List<BBox> bboxes = POIUtils.calcResultingBBox(ListUtils.mapToPoints(routeCoordinates), 100)
 
@@ -119,8 +118,8 @@ class HomeController {
 
     private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
         ActiveTimer timer = new ActiveTimer()
-        List<Node> nodes = new POIParser().parse(new POIApi(startLatLon.lon, startLatLon.lat,
-                destLatLon.lon, destLatLon.lat))
+        List<Node> nodes = new POIParser().parse(new POIApi(new BBox(startLatLon.lon, startLatLon.lat,
+                destLatLon.lon, destLatLon.lat)))
         timer.stopAndLog(log, "POI parsing.")
         timer.reset()
         List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(nodes)

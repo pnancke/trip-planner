@@ -14,10 +14,8 @@ import de.lmu.ifi.dbs.elki.distance.distancefunction.geo.LatLngDistanceFunction
 import de.lmu.ifi.dbs.elki.logging.LoggingConfiguration
 import de.lmu.ifi.dbs.elki.math.geodesy.SphericalVincentyEarthModel
 import de.lmu.ifi.dbs.elki.math.random.RandomFactory
-import trip.planner.osm.model.Node
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import trip.planner.osm.model.Node
 import trip.planner.osm.model.PointCluster
 
 class ElkiWrapper {
@@ -27,8 +25,8 @@ class ElkiWrapper {
     static Pair<Database, List<Cluster<KMeansModel>>> extractClusters(List<Point> points,
                                                                       int kMeansPartitions,
                                                                       int maxKMeansIterations) {
-        if (nodes.isEmpty()) {
-            log.info "empty node-list are given"
+        if (points.isEmpty()) {
+            log.info "empty point-list are given"
         }
         LoggingConfiguration.setStatistics()
         double[][] data = convert(points)
