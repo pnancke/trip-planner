@@ -1,15 +1,13 @@
 package trip.planner.osm.api
 
-import com.google.common.base.Preconditions
-
 class Point {
 
     Double lon
     Double lat
 
     Point(Double lon, Double lat) {
-        Preconditions.checkNotNull(lon)
-        Preconditions.checkNotNull(lat)
+        Objects.nonNull(lon)
+        Objects.nonNull(lat)
 
         this.lon = lon
         this.lat = lat

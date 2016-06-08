@@ -82,4 +82,14 @@ class HomeControllerIntegrationSpec extends Specification {
         response.content.toString().equals('{"success":false,"error":"Error: Unable to find \'' + NOT_EXISTING_CITY_1
                 + '\' and \'' + NOT_EXISTING_CITY_2 + '\'!"}')
     }
+
+    void "test get route with equal start and destination place"() {
+        when:
+        controller.getRoute(LEIPZIG, LEIPZIG, 0)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().equals('{"success":false,"error":"Error: Unable to generate route, given places are equal."}')
+    }
 }

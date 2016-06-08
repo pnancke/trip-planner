@@ -1,6 +1,7 @@
 package trip.planner.osm.api
 
 import spock.lang.Specification
+import trip.planner.util.POIUtils
 
 class POIApiSpec extends Specification {
 
@@ -41,5 +42,14 @@ class POIApiSpec extends Specification {
         then:
         api.getBBox().getStart() == new Point(0.0, 100.0)
         api.getBBox().getEnd() == new Point(50.0, 50.0)
+    }
+
+    def "calc resulting bbox works"() {
+        when:
+        List<BBox> box = POIUtils.calcResultingBBox(
+                [new Point(1.2, 1.5), new Point(-10.0, 1.5), new Point(100.0, 100.0)], 10.0)
+
+        then:
+        box.size() == 1
     }
 }

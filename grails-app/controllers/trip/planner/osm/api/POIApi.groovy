@@ -8,12 +8,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import trip.planner.util.ActiveTimer
 
-import java.util.stream.Collectors
-
 class POIApi implements Api {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
-
     private static Log log = LogFactory.getLog(POIApi.class)
 
     private String url
@@ -25,7 +22,7 @@ class POIApi implements Api {
     String xmlContent
     HttpStatus status
 
-    POIApi(BBox bbox) {
+    public POIApi(BBox bbox) {
         Preconditions.checkNotNull(bbox)
         this.bbox = bbox
         url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=${bbox.toString()}]"
@@ -48,11 +45,5 @@ class POIApi implements Api {
 
     public BBox getBBox() {
         this.bbox
-    }
-
-    public static BBox calcBBoxOfRoute(List<Point> route) {
-        List<Double> lats = route.stream().map({ point -> point.lat }).collect(Collectors.toList())
-        List<Double> lons = route.stream().map({ point -> point.lon }).collect(Collectors.toList())
-        new BBox(lons.min(), lats.min(), lons.max(), lats.max())
     }
 }
