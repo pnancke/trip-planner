@@ -8,74 +8,27 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import trip.planner.util.ActiveTimer
 
-class POIApi {
+class POIApi implements Api {
 
     public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
-
     private static Log log = LogFactory.getLog(POIApi.class)
 
     private String url
     private RestBuilder rest = new RestBuilder()
     private ResponseEntity response
+    private BBox bbox
 
     String info
     String xmlContent
     HttpStatus status
 
-    private double startLat
-    private double destinationLat
-    private double startLon
-    private double destinationLon
-
-    POIApi(double startLon, double startLat, double destinationLon, double destinationLat) {
-        if (validateCoords(startLon, startLat, destinationLon, destinationLat)) {
-            double tmpLon = startLon
-            startLon = destinationLon
-            destinationLon = tmpLon
-
-            double tmpLat = startLat
-            startLat = destinationLat
-            destinationLat = tmpLat
-        }
-        this.startLat = startLat
-        this.destinationLat = destinationLat
-        this.startLon = startLon
-        this.destinationLon = destinationLon
-        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=$startLon,$startLat,$destinationLon,$destinationLat]"
+    public POIApi(BBox bbox) {
+        Preconditions.checkNotNull(bbox)
+        this.bbox = bbox
+        url = "http://www.overpass-api.de/api/xapi?node[tourism=attraction][name=*][bbox=${bbox.toString()}]"
     }
 
-    POIApi(Point start, Point destination) {
-        this(start.lon, start.lat, destination.lon, destination.lat)
-    }
-
-    POIApi(Pair<Point, Point> pointPair) {
-        this(pointPair.a.lon, pointPair.a.lat, pointPair.b.lon, pointPair.b.lat)
-    }
-
-    /**
-     * @param startLon
-     * @param startLat
-     * @param destinationLon
-     * @param destinationLat
-     * @return swapIsNecessary
-     */
-    static boolean validateCoords(double startLon, double startLat, double destinationLon, double destinationLat) {
-        Preconditions.checkNotNull(startLon)
-        Preconditions.checkNotNull(startLat)
-        Preconditions.checkNotNull(destinationLon)
-        Preconditions.checkNotNull(destinationLat)
-
-        if (startLat == destinationLat && destinationLon == startLon) {
-            throw new IllegalArgumentException("The start-position is equals to the destination-position.")
-        }
-
-        return !(startLon < destinationLon && startLat < destinationLat)
-    }
-
-    /**
-     *
-     * @return success - if the POIApi xmlContent is valid or not
-     */
+    @Override
     boolean doRequest() {
         ActiveTimer timer = new ActiveTimer()
 
@@ -90,8 +43,7 @@ class POIApi {
         success
     }
 
-    public Pair<Point, Point> getBBox() {
-        return new Pair<Point, Point>(new Point(startLon, startLat)
-                , new Point(destinationLon, destinationLat))
+    public BBox getBBox() {
+        this.bbox
     }
 }

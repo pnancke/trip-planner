@@ -16,13 +16,11 @@ class POIParser {
     public static
     final String FALSE_QUERY_MESSAGE = "The value of attribute \"n\" of the element \"bbox-query\" must " +
             "always be greater or equal than the value of attribute \"s\"."
-    public static final String UNAVAILABLE_MESSAGE = "Service is still running, please wait."
-    public static final String ANOTHER_SERVICE_MESSAGE = "Another request from your IP is still running."
     public static final long TEN_SECONDS = 10000L
     private static Log log = LogFactory.getLog(POIParser.class)
 
     static List<Node> parse(POIApi api) {
-        log.info "Begin parsing of poi-request with bbox: ${api.getBBox()}"
+        log.info "Begin parsing of poi-request with bbox: $api.BBox"
 
         for (int i = 0; i < 4; i++) {
             if (api.doRequest()) {
@@ -39,7 +37,8 @@ class POIParser {
                     }
 
                     if (request.nodes == null) {
-                        throw new NoSuchElementException("No nodes found in given bbox.")
+                        log.info "No nodes found in given bbox: $api.BBox"
+                        return Collections.emptyList()
                     }
 
                     return request.nodes
@@ -47,16 +46,14 @@ class POIParser {
                     throw new IllegalArgumentException("Cannot parse: $term. Cause from parser: " + crce.message)
                 }
             } else {
+                if (i == 3) {
+                    return Collections.emptyList()
+                }
                 log.info "Wait 10 s then try again."
                 Thread.sleep(TEN_SECONDS)
             }
         }
-
-        if (api.xmlContent.contains(ANOTHER_SERVICE_MESSAGE)) {
-            throw new RuntimeException(UNAVAILABLE_MESSAGE)
-        } else {
-            throw new RuntimeException("Unknown error with: $api.xmlContent")
-        }
+        return Collections.emptyList()
     }
 
     private static POIRequest parsePOIRequest(String term) {

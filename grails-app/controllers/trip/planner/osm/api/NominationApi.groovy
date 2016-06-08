@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import trip.planner.util.ActiveTimer
 
-class NominationApi {
+class NominationApi implements Api {
 
     private static Log log = LogFactory.getLog(NominationApi.class)
     private String url
@@ -17,16 +17,13 @@ class NominationApi {
     String info
     String xmlContent
     HttpStatus status
-    Pair<Double, Double> latLon
+    Point point
 
     NominationApi(String q) {
         url = "http://nominatim.openstreetmap.org/search?q=$q&format=xml&addressdetails=0&limit=1"
     }
 
-    /**
-     *
-     * @return success - if the NominationApi xmlContent is valid or not
-     */
+    @Override
     boolean doRequest() {
         ActiveTimer timer = new ActiveTimer()
 
@@ -46,8 +43,8 @@ class NominationApi {
         } else {
             Double lat = Double.parseDouble(latString)
             Double lon = Double.parseDouble(lonString)
-            this.latLon = new Pair<Double, Double>(lat, lon)
-            success = status == HttpStatus.OK && !this.latLon.a.naN && !this.latLon.b.naN
+            this.point = new Point(lon, lat)
+            success = status == HttpStatus.OK && !this.point.lon.naN && !this.point.lat.naN
         }
         timer.stopAndLog(log)
         success

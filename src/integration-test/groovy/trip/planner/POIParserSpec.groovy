@@ -1,26 +1,20 @@
 package trip.planner
 
-import org.grails.core.util.StopWatch
 import org.springframework.http.HttpStatus
 import spock.lang.Ignore
 import spock.lang.Specification
+import trip.planner.osm.api.BBox
 import trip.planner.osm.api.POIApi
-import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
 
-import java.util.concurrent.TimeoutException
-
 class POIParserSpec extends Specification {
 
-    public static final Pair BERLIN_BBOX = new Pair(new Point(13.35869, 52.48654), new Point(13.50975, 52.53544))
-    public static final Pair EIFFEL_BBOX = new Pair(new Point(2.291188, 48.856867), new Point(2.296391, 48.860467))
-    public static final Pair ANOTHER_BBOX = new Pair(new Point(12.291503, 51.197322), new Point(13.508238, 52.679259))
-    public static final Pair GERMANY_BBOX = new Pair(new Point(7.469916, 47.718927), new Point(13.418928, 54.393428))
-    public static final Pair OCEAN_BBOX = new Pair(new Point(2.193275, 54.820783), new Point(2.211038, 54.827618))
-    public static final int HUNDRED_SECONDS = 100
-
-    private StopWatch watch = new StopWatch();
+    private static final BBox BERLIN_BBOX = new BBox(new Point(13.35869, 52.48654), new Point(13.50975, 52.53544))
+    private static final BBox EIFFEL_BBOX = new BBox(new Point(2.291188, 48.856867), new Point(2.296391, 48.860467))
+    private static final BBox ANOTHER_BBOX = new BBox(new Point(12.291503, 51.197322), new Point(13.508238, 52.679259))
+    private static final BBox GERMANY_BBOX = new BBox(new Point(7.469916, 47.718927), new Point(13.418928, 54.393428))
+    private static final BBox OCEAN_BBOX = new BBox(new Point(2.193275, 54.820783), new Point(2.211038, 54.827618))
 
     def "parsing from osm-xapi works"() {
         given: "a request to the POIApi"
@@ -45,47 +39,41 @@ class POIParserSpec extends Specification {
         })
     }
 
-    def "bbox with no nodes returns NoSuchElementException"() {
+    def "bbox with no nodes succeeds"() {
         when:
-        doRequestAndParse(OCEAN_BBOX)
+        List<Node> list = doRequestAndParse(OCEAN_BBOX)
 
         then:
-        def ex = thrown(NoSuchElementException)
-        ex.message == "No nodes found in given bbox."
+        list.isEmpty()
     }
 
     @Ignore
-    def "too big bbox returns TimeoutException"() {
+    def "a big bbox works"() {
         when:
-        doRequestAndParse(GERMANY_BBOX)
+        def api = new POIApi(GERMANY_BBOX)
+        List<Node> nodes = POIParser.parse(api)
 
-        then:
-        thrown(TimeoutException)
+        then: "a list of valid nodes"
+        validateRequest(api, nodes)
+        nodes.stream().allMatch({ x -> x.id != null && x.lat != null && x.lon != null })
     }
 
     @Ignore
-    def "three requests take less than hundred seconds without service error"() {
+    def "many requests works"() {
         when:
-        watch.start()
-        doRequestAndParse(ANOTHER_BBOX)
-        doRequestAndParse(EIFFEL_BBOX)
-        doRequestAndParse(BERLIN_BBOX)
-
-        double time = stopTime()
+        List<Node> first = doRequestAndParse(ANOTHER_BBOX)
+        List<Node> second = doRequestAndParse(EIFFEL_BBOX)
+        List<Node> third = doRequestAndParse(BERLIN_BBOX)
 
         then:
-        time < HUNDRED_SECONDS
+        first != null
+        second != null
+        third != null
     }
 
-    private static List<Node> doRequestAndParse(Pair bbox) {
-        POIApi api2 = new POIApi(bbox)
-        POIParser.parse(api2)
-    }
-
-    private double stopTime() {
-        watch.stop()
-        def time = watch.totalTimeSeconds
-        time
+    private static List<Node> doRequestAndParse(BBox bbox) {
+        POIApi api = new POIApi(bbox)
+        POIParser.parse(api)
     }
 
     private static void validateRequest(POIApi api, List<Node> nodes) {

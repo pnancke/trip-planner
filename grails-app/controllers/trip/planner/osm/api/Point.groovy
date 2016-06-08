@@ -2,10 +2,13 @@ package trip.planner.osm.api
 
 class Point {
 
-    double lon
-    double lat
+    Double lon
+    Double lat
 
-    Point(double lon, double lat) {
+    Point(Double lon, Double lat) {
+        Objects.nonNull(lon)
+        Objects.nonNull(lat)
+
         this.lon = lon
         this.lat = lat
     }
@@ -34,9 +37,6 @@ class Point {
 
     @Override
     public String toString() {
-        return "Point{" +
-                "lon=" + lon +
-                ", lat=" + lat +
-                '}';
+        return "[" + lon + "," + lat + "]";
     }
 }

@@ -1,34 +1,34 @@
 package trip.planner.osm.api
 
 import spock.lang.Specification
+import trip.planner.util.POIUtils
 
 class POIApiSpec extends Specification {
 
-
-    public static final String VALIDATION_ERROR = "The start-position is equals to the destination-position."
-    public static final Pair<Point, Point> LOWER_THAN_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 0))
-    public static final Pair<Point, Point> HIGHER_THAN_PAIR = new Pair<Point, Point>(new Point(0, 0), new Point(50, 50))
-    public static final Pair<Point, Point> MIXED_PAIR = new Pair<Point, Point>(new Point(50, 50), new Point(0, 100))
+    private static final String VALIDATION_ERROR = "The start-position is equals to the destination-position."
+    private static final BBox LOWER_THAN_BBOX = new BBox(new Point(50, 50), new Point(0, 0))
+    private static final BBox HIGHER_THAN_BBOX = new BBox(new Point(0, 0), new Point(50, 50))
+    private static final BBox MIXED_BBOX = new BBox(new Point(50, 50), new Point(0, 100))
 
     def "lowerThan bbox changes to higherThan"() {
         when:
-        POIApi api = new POIApi(LOWER_THAN_PAIR);
+        POIApi api = new POIApi(LOWER_THAN_BBOX);
 
         then:
-        api.getBBox().equals(HIGHER_THAN_PAIR)
+        api.getBBox().equals(HIGHER_THAN_BBOX)
     }
 
     def "higherThan is still higherThan"() {
         when:
-        POIApi api = new POIApi(HIGHER_THAN_PAIR)
+        POIApi api = new POIApi(HIGHER_THAN_BBOX)
 
         then:
-        api.getBBox().equals(HIGHER_THAN_PAIR)
+        api.getBBox().equals(HIGHER_THAN_BBOX)
     }
 
     def "fails on equals validation"() {
         when:
-        new POIApi(50, 0, 50, 0)
+        new POIApi(new BBox(50, 0, 50, 0))
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -37,9 +37,19 @@ class POIApiSpec extends Specification {
 
     def "mixed bbox changes"() {
         when:
-        POIApi api = new POIApi(MIXED_PAIR);
+        POIApi api = new POIApi(MIXED_BBOX);
 
         then:
-        !api.getBBox().equals(MIXED_PAIR)
+        api.getBBox().getStart() == new Point(0.0, 100.0)
+        api.getBBox().getEnd() == new Point(50.0, 50.0)
+    }
+
+    def "calc resulting bbox works"() {
+        when:
+        List<BBox> box = POIUtils.calcResultingBBox(
+                [new Point(1.2, 1.5), new Point(-10.0, 1.5), new Point(100.0, 100.0)], 10.0)
+
+        then:
+        box.size() == 1
     }
 }
