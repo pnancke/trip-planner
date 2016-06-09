@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.BBox
 import trip.planner.osm.api.POIApi
+import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.Node
 import trip.planner.osm.model.PointCluster
@@ -49,9 +50,9 @@ class HomeController {
         for (int i = 1; i < 4; i++) {
             try {
                 ActiveTimer timer = new ActiveTimer()
-                List<List<String>> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
+                Pair<List<List<String>>, Double> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
                 //TODO replace 100 with actual travel time
-                List<BBox> bboxes = POIUtils.calcResultingBBox(ListUtils.mapToPoints(routeCoordinates), 100)
+                List<BBox> bboxes = POIUtils.calcResultingBBox(ListUtils.mapToPoints(routeCoordinates.getA()), 100)
 
                 log.info "calculate ${bboxes.size()} poi-bboxes"
                 List<PointCluster> poiCoordinates = new ArrayList<>()
@@ -63,7 +64,7 @@ class HomeController {
                 }
                 timer.stopAndLog(log, "routing and clustering")
 
-                List<List<String>> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint, poiCoordinates.clusterCenter, lang)
+                Pair<List<List<String>>, Double> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint, poiCoordinates.clusterCenter, lang)
                 def startCoords = [startPoint.lat, startPoint.lon]
                 def json = new JsonBuilder()
                 json {
@@ -91,8 +92,8 @@ class HomeController {
         json.toString()
     }
 
-    private static List<List<String>> getRouteCoordinates(RestBuilder rest, Point start,
-                                                          Point destination, List<Point> via, String lang) {
+    private static Pair<List<List<String>>, Double> getRouteCoordinates(RestBuilder rest, Point start,
+                                                                        Point destination, List<Point> via, String lang) {
         ActiveTimer timer = new ActiveTimer()
         List<String> visStrings = new ArrayList<>()
         via.each {
@@ -113,7 +114,7 @@ class HomeController {
         LinkedList routeCoordinates = xml.'Response'.'DetermineRouteResponse'.'RouteGeometry'.'LineString'.'pos'.list()
 
         timer.stopAndLog(log, "creating route with waypoints")
-        routeCoordinates.collect { it.toString().tokenize(" ") }
+        new Pair(routeCoordinates.collect { it.toString().tokenize(" ") }, travelTime)
     }
 
     private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
