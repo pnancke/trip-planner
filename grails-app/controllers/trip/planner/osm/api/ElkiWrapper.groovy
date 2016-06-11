@@ -14,15 +14,15 @@ import de.lmu.ifi.dbs.elki.distance.distancefunction.geo.LatLngDistanceFunction
 import de.lmu.ifi.dbs.elki.logging.LoggingConfiguration
 import de.lmu.ifi.dbs.elki.math.geodesy.SphericalVincentyEarthModel
 import de.lmu.ifi.dbs.elki.math.random.RandomFactory
-import trip.planner.osm.model.Node
+import trip.planner.osm.model.PointCluster
 
 class ElkiWrapper {
 
-    static Pair<Database, ArrayList<Cluster<KMeansModel>>> extractClusters(ArrayList<Node> nodes,
+    static Pair<Database, ArrayList<Cluster<KMeansModel>>> extractClusters(List<Point> points,
                                                                            int kMeansPartitions,
                                                                            int maxKMeansIterations) {
         LoggingConfiguration.setStatistics()
-        double[][] data = convertNodeList(nodes)
+        double[][] data = convert(points)
         StaticArrayDatabase db = createDatabase(data)
         Clustering<KMeansModel> c = createKMeans(kMeansPartitions, maxKMeansIterations).run(db)
         ArrayList<Cluster<KMeansModel>> clusters = c.getAllClusters()
@@ -30,14 +30,14 @@ class ElkiWrapper {
         pair
     }
 
-    public static ArrayList<Cluster> filterOutliers(ArrayList<Cluster> allClusters,
+    public static List<PointCluster> filterOutliers(List<PointCluster> allClusters,
                                                     int kMeansPartitions,
                                                     double minMeanPercentageClusterSize) {
 
         int allPointsCount = 0
         allClusters.each { allPointsCount += it.size() }
         int averageSize = allPointsCount / kMeansPartitions
-        ArrayList<Cluster> filteredClusters = new ArrayList<>()
+        ArrayList<PointCluster> filteredClusters = new ArrayList<>()
         allClusters.each {
             if (it.size() > minMeanPercentageClusterSize * averageSize) {
                 filteredClusters.add(it)
@@ -60,11 +60,11 @@ class ElkiWrapper {
         db
     }
 
-    private static double[][] convertNodeList(ArrayList<Node> nodes) {
-        double[][] data = new double[nodes.size()][2]
+    private static double[][] convert(List<Point> points) {
+        double[][] data = new double[points.size()][2]
         for (int i = 0; i < data.length; i++) {
-            data[i][0] = nodes.get(i).getLat()
-            data[i][1] = nodes.get(i).getLon()
+            data[i][0] = points.get(i).getLat()
+            data[i][1] = points.get(i).getLon()
         }
         data
     }

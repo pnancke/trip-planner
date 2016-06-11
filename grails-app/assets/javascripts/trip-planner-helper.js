@@ -1,6 +1,7 @@
 var map;
 var markerLayer;
 var lineLayer;
+var clusterCenterLayer;
 var lineStyle = {
     strokeColor: '#0000ff',
     strokeOpacity: 0.5,
@@ -19,8 +20,11 @@ function init() {
     map.addLayer(markerLayer);
 
     lineLayer = new OpenLayers.Layer.Vector("Line Layer");
-
     map.addLayer(lineLayer);
+
+    clusterCenterLayer = new OpenLayers.Layer.Vector("Cluster Center Layer");
+    map.addLayer(clusterCenterLayer);
+
     map.addControl(new OpenLayers.Control.DrawFeature(lineLayer, OpenLayers.Handler.Path));
 
     map.setCenter(new OpenLayers.LonLat(13.41, 52.52)
@@ -57,10 +61,20 @@ function addMarker(lat, lon) {
 }
 
 function addMarkers(coordinates) {
-    markerLayer.clearMarkers();
     for (var i = 0; i < coordinates.length; i++) {
-        addMarker(coordinates[i][0], coordinates[i][1]);
+        addMarker(coordinates[i].lat, coordinates[i].lon);
     }
+}
+function clearMarkers() {
+    markerLayer.clearMarkers();
+    clusterCenterLayer.destroyFeatures();
+}
+
+function drawCircle(lat, lon) {
+    var current_point = new OpenLayers.Geometry.Point(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+    var max_distance_to_cluster_center = 10000;
+    var circle_geometry = new OpenLayers.Geometry.Polygon.createRegularPolygon(current_point, max_distance_to_cluster_center, 50, 0);
+    clusterCenterLayer.addFeatures([new OpenLayers.Feature.Vector(circle_geometry)]);
 }
 
 function resizeMap() {
