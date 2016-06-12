@@ -8,9 +8,9 @@ import de.lmu.ifi.dbs.elki.data.type.TypeUtil
 import de.lmu.ifi.dbs.elki.database.Database
 import de.lmu.ifi.dbs.elki.database.ids.DBIDIter
 import de.lmu.ifi.dbs.elki.database.relation.Relation
+import trip.planner.PointOfInterest
 import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
-import trip.planner.osm.model.Node
 import trip.planner.osm.model.PointCluster
 
 import java.util.stream.Collectors
@@ -47,8 +47,8 @@ class ClusterHelper {
         return (deg * Math.PI / SEMICIRCLE_DEGREES)
     }
 
-    public static List<Point> convert(List<Node> nodes) {
-        nodes.stream().map({ node -> new Point(node.lon, node.lat) }).collect(Collectors.toList())
+    public static List<Point> convert(List<PointOfInterest> pointOfInterests) {
+        pointOfInterests.stream().map({ poi -> new Point(poi.lon, poi.lat) }).collect(Collectors.toList())
     }
 
     public static List<PointCluster> convert(Pair<Database, List<Cluster<KMeansModel>>> pair) {
@@ -68,9 +68,9 @@ class ClusterHelper {
         pointClusters
     }
 
-    public static List<PointCluster> extractCoordinateClusterWithoutOutliers(List<Node> nodes) {
+    public static List<PointCluster> extractCoordinateClusterWithoutOutliers(List<PointOfInterest> pointOfInterests) {
         Pair<Database, ArrayList<Cluster<KMeansModel>>> pair =
-                extractClusters(convert(nodes), K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
+                extractClusters(convert(pointOfInterests), K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS)
         List<PointCluster> unfilteredClusters = convert(pair)
         List<PointCluster> filteredClusters = filterOutliers(unfilteredClusters,
                 K_MEANS_CLUSTER_SIZE,
