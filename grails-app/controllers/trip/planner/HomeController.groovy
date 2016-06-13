@@ -7,9 +7,7 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.NominationApi
-import trip.planner.osm.api.POIApi
 import trip.planner.osm.api.Point
-import trip.planner.osm.model.Node
 import trip.planner.osm.model.PointCluster
 import trip.planner.util.ActiveTimer
 import trip.planner.util.SortPoints
@@ -24,6 +22,12 @@ class HomeController {
     private static Log log = LogFactory.getLog(HomeController.class)
 
     def index() {}
+
+    def getPoi() {
+        List<PointOfInterest> pois = PointOfInterest.getPOIsInBBox(new Point(1, 1), new Point(100, 100))
+        def each = pois.each { it.toString() }
+        render "POIs: " + each
+    }
 
     def getRoute(String start, String destination, int additionalTravelTime, String lang) {
         Point startPoint = extractCoordinates(start)
@@ -81,7 +85,7 @@ class HomeController {
         String url = "http://openls.geog.uni-heidelberg.de/route?start=$start.lon,$start.lat&end=$destination.lon," +
                 "$destination.lat&via=$viaString&lang=$lang&distunit=KM&routepref=Car&weighting=Recommended&useTMC=false" +
                 "&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false"
-        log.info("Routing URL with waypoints: $url")
+        log.info("Request to routing URL: $url")
 
         def get = rest.get(url)
         def xml = new XmlSlurper().parseText(get.responseEntity.body.toString())
@@ -95,14 +99,13 @@ class HomeController {
 
     private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
         ActiveTimer timer = new ActiveTimer()
-        List<Node> nodes = new POIParser().parse(new POIApi(startLatLon.lon, startLatLon.lat,
-                destLatLon.lon, destLatLon.lat))
-        timer.stopAndLog(log, "POI parsing.")
+        List<PointOfInterest> pois = PointOfInterest.getPOIsInBBox(startLatLon, destLatLon)
+        timer.stopAndLog(log, "POI extracting.")
         timer.reset()
-        List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(nodes)
+        List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(pois)
         timer.stopAndLog(log, "clustering.")
 
-        log.info "found ${nodes.size()} nodes"
+        log.info "found ${pois.size()} nodes"
         log.info "after clustering, ${poiClusters.size()} cluster are given"
         poiClusters
     }
