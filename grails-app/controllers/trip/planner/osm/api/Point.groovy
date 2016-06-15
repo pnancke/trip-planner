@@ -13,6 +13,10 @@ class Point {
         this.lat = lat
     }
 
+    public String toStringDarrinWardFormat() {
+        return "$lat,$lon\n"
+    }
+
     boolean equals(o) {
         if (this.is(o)) return true
         if (getClass() != o.class) return false

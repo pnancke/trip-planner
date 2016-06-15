@@ -162,6 +162,16 @@ class PointOfInterest {
         findAllByLatBetweenAndLonBetween(start.lat, end.lat, start.lon, end.lon)
     }
 
+    static List<PointOfInterest> getPOIsInRouteArea(List<Point> route, Double area) {
+        List<PointOfInterest> pois = new ArrayList<>()
+        route.each {
+            List<PointOfInterest> between = getPOIsInBBox(
+                    new Point(it.lon - area, it.lat - area), new Point(it.lon + area, it.lat + area))
+            pois.addAll(between)
+        }
+        pois.unique()
+    }
+
     static boolean coordinatesAreInRightOrder(Point start, Point destination) {
         Preconditions.checkNotNull(start.lon)
         Preconditions.checkNotNull(start.lat)

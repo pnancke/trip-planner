@@ -10,6 +10,7 @@ import trip.planner.osm.api.NominationApi
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.PointCluster
 import trip.planner.util.ActiveTimer
+import trip.planner.util.ListUtils
 import trip.planner.util.SortPoints
 
 import java.util.stream.Collectors
@@ -32,6 +33,7 @@ class HomeController {
     def getRoute(String start, String destination, int additionalTravelTime, String lang) {
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
+        Double searchArea = 0.02
 
         if (startPoint == null && destPoint == null) {
             render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
@@ -40,13 +42,21 @@ class HomeController {
         } else if (destPoint == null) {
             render createErrorMessage("Error: Unable to find '$destination'!")
         } else {
+            if (startPoint.equals(destPoint)) {
+                render createErrorMessage("Error: Unable to generate route, given places are equal.")
+                return
+            }
+
             RestBuilder rest = new RestBuilder()
             for (int i = 1; i < 4; i++) {
                 try {
-                    List<String> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint, emptyList(), lang)
-                    List<PointCluster> poiCoordinates = getPOIs(startPoint, destPoint)
+                    List<List<String>> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint
+                            , emptyList(), lang)
+                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(ListUtils.mapToPoints(routeCoordinates)
+                            , searchArea)
                     def startCoords = [startPoint.lat, startPoint.lon]
-                    List<List<String>> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint, poiCoordinates.clusterCenter, lang)
+                    List<List<String>> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint
+                            , poiCoordinates.clusterCenter, lang)
 
                     def json = new JsonBuilder()
                     json {
@@ -76,7 +86,8 @@ class HomeController {
     }
 
     private
-    static List<List<String>> getRouteCoordinates(RestBuilder rest, Point start, Point destination, List<Point> via, String lang) {
+    static List<List<String>> getRouteCoordinates(RestBuilder rest, Point start, Point destination, List<Point> via
+                                                  , String lang) {
         ActiveTimer timer = new ActiveTimer()
         Collections.sort(via, new SortPoints(start));
         Joiner joiner = Joiner.on(' ').skipNulls()
@@ -97,9 +108,9 @@ class HomeController {
         routeCoordinates.collect { it.toString().tokenize(" ") }
     }
 
-    private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
+    public static List<PointCluster> getPOIsInRouteArea(List<Point> route, Double area) {
         ActiveTimer timer = new ActiveTimer()
-        List<PointOfInterest> pois = PointOfInterest.getPOIsInBBox(startLatLon, destLatLon)
+        List<PointOfInterest> pois = PointOfInterest.getPOIsInRouteArea(route, area)
         timer.stopAndLog(log, "POI extracting.")
         timer.reset()
         List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(pois)
@@ -107,6 +118,7 @@ class HomeController {
 
         log.info "found ${pois.size()} nodes"
         log.info "after clustering, ${poiClusters.size()} cluster are given"
+
         poiClusters
     }
 
