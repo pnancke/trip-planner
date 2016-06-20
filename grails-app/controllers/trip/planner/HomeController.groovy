@@ -1,26 +1,26 @@
 package trip.planner
 
-import com.google.common.base.Joiner
 import grails.plugins.rest.client.RestBuilder
 import groovy.json.JsonBuilder
+import groovyx.gpars.GParsPool
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.web.client.RestClientException
 import trip.planner.osm.api.NominationApi
 import trip.planner.osm.api.Point
 import trip.planner.osm.model.PointCluster
+import trip.planner.osm.model.RouteSegment
+import trip.planner.osm.model.WaypointRoute
 import trip.planner.util.ActiveTimer
 import trip.planner.util.ListUtils
-import trip.planner.util.SortPoints
+import trip.planner.util.SortByClusterCenter
 
-import java.util.stream.Collectors
-
-import static java.util.Collections.emptyList
 import static trip.planner.util.ClusterHelper.extractCoordinateClusterWithoutOutliers
 
 class HomeController {
 
     private static Log log = LogFactory.getLog(HomeController.class)
+    private static final int THREAD_COUNT = 3
 
     def index() {}
 
@@ -47,24 +47,22 @@ class HomeController {
                 return
             }
 
-            RestBuilder rest = new RestBuilder()
             for (int i = 1; i < 4; i++) {
                 try {
-                    List<List<String>> routeCoordinates = getRouteCoordinates(rest, startPoint, destPoint
-                            , emptyList(), lang)
-                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(ListUtils.mapToPoints(routeCoordinates)
+                    RouteSegment routeCoordinates = getRouteCoordinates(startPoint, destPoint)
+                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(ListUtils.mapToPoints(routeCoordinates.getRoute())
                             , searchArea)
                     def startCoords = [startPoint.lat, startPoint.lon]
-                    List<List<String>> routingCoordinatesWithWaypoints = getRouteCoordinates(rest, startPoint, destPoint
-                            , poiCoordinates.clusterCenter, lang)
+                    WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint)
 
                     def json = new JsonBuilder()
                     json {
                         success true
-                        route routingCoordinatesWithWaypoints
+                        route waypointRoute.generateRoute()
                         pois poiCoordinates
                         startCoordinates startCoords
                     }
+                    log.info(waypointRoute.routeSegments)
                     render json.toString()
                     return
                 } catch (RestClientException e) {
@@ -76,6 +74,22 @@ class HomeController {
         }
     }
 
+    private static WaypointRoute generateWaypointRoute(List<PointCluster> poiCoordinates, Point start) {
+        Collections.sort(poiCoordinates, new SortByClusterCenter(start));
+        WaypointRoute waypointRoute = new WaypointRoute(poiCoordinates.clusterCenter)
+        List<RouteSegment> routeSegments = waypointRoute.getRouteSegments()
+        ActiveTimer timer = new ActiveTimer()
+        GParsPool.withPool(THREAD_COUNT) {
+            routeSegments.eachWithIndexParallel { RouteSegment routeSegment, int i ->
+                def coordinates = getRouteCoordinates(routeSegment.start, routeSegment.destination)
+                waypointRoute.setRouteSegment(coordinates, i)
+            }
+        }
+
+        timer.stopAndLog(log, "Generating route with waypoints")
+        waypointRoute
+    }
+
     public String createErrorMessage(String message) {
         def json = new JsonBuilder()
         json {
@@ -85,28 +99,20 @@ class HomeController {
         json.toString()
     }
 
-    private
-    static List<List<String>> getRouteCoordinates(RestBuilder rest, Point start, Point destination, List<Point> via
-                                                  , String lang) {
+    private static RouteSegment getRouteCoordinates(Point start, Point destination) {
         ActiveTimer timer = new ActiveTimer()
-        Collections.sort(via, new SortPoints(start));
-        Joiner joiner = Joiner.on(' ').skipNulls()
-        String viaString = joiner.join(via.stream().map({ it -> it.lon + "," + it.lat }).collect(Collectors.toList()))
-
-        String url = "http://openls.geog.uni-heidelberg.de/route?start=$start.lon,$start.lat&end=$destination.lon," +
-                "$destination.lat&via=$viaString&lang=$lang&distunit=KM&routepref=Car&weighting=Recommended&useTMC=false" +
-                "&noMotorways=false&noTollways=false&noUnpavedroads=false&noSteps=false&noFerries=false&instructions=false"
-        log.info("Request to routing URL: $url")
-
-        def get = rest.get(url)
-        def xml = new XmlSlurper().parseText(get.responseEntity.body.toString())
-        def travelTime = xml.'Response'.'DetermineRouteResponse'.'RouteSummary'.'TotalTime'
+        RestBuilder rest = new RestBuilder()
+        def url = "http://www.yournavigation.org/api/1.0/gosmore.php?format=kml&flat=$start.lat&flon=$start.lon" +
+                "&tlat=$destination.lat&tlon=$destination.lon"
+        def xml = new XmlSlurper().parseText(rest.get(url).text)
+        Integer travelTime = xml.Document.traveltime.toInteger()
         log.info "found a route with a travel-time of: $travelTime"
-        LinkedList routeCoordinates = xml.'Response'.'DetermineRouteResponse'.'RouteGeometry'.'LineString'.'pos'.list()
-
-        timer.stopAndLog(log, "creating route with waypoints")
-        routeCoordinates.collect { it.toString().tokenize(" ") }
+        def routeCoordinates = xml.Document.Folder.Placemark.LineString.coordinates.text().trim().tokenize("\n")
+        RouteSegment routeSegment = new RouteSegment(start, destination, routeCoordinates.collect { it.tokenize(",") })
+        timer.stopAndLog(log, "Route REST call")
+        routeSegment
     }
+
 
     public static List<PointCluster> getPOIsInRouteArea(List<Point> route, Double area) {
         ActiveTimer timer = new ActiveTimer()
@@ -114,7 +120,7 @@ class HomeController {
         timer.stopAndLog(log, "POI extracting.")
         timer.reset()
         List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(pois)
-        timer.stopAndLog(log, "clustering.")
+        timer.stopAndLog(log, "Clustering")
 
         log.info "found ${pois.size()} nodes"
         log.info "after clustering, ${poiClusters.size()} cluster are given"

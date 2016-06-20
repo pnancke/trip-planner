@@ -14,7 +14,6 @@ import de.lmu.ifi.dbs.elki.distance.distancefunction.geo.LatLngDistanceFunction
 import de.lmu.ifi.dbs.elki.logging.LoggingConfiguration
 import de.lmu.ifi.dbs.elki.math.geodesy.SphericalVincentyEarthModel
 import de.lmu.ifi.dbs.elki.math.random.RandomFactory
-import trip.planner.osm.model.PointCluster
 
 class ElkiWrapper {
 
@@ -30,21 +29,6 @@ class ElkiWrapper {
         pair
     }
 
-    public static List<PointCluster> filterOutliers(List<PointCluster> allClusters,
-                                                    int kMeansPartitions,
-                                                    double minMeanPercentageClusterSize) {
-
-        int allPointsCount = 0
-        allClusters.each { allPointsCount += it.size() }
-        int averageSize = allPointsCount / kMeansPartitions
-        ArrayList<PointCluster> filteredClusters = new ArrayList<>()
-        allClusters.each {
-            if (it.size() > minMeanPercentageClusterSize * averageSize) {
-                filteredClusters.add(it)
-            }
-        }
-        filteredClusters
-    }
 
     private static KMeansLloyd<NumberVector> createKMeans(int kMeansPartitions, int maxKMeansIterations) {
         LatLngDistanceFunction dist = new LatLngDistanceFunction(SphericalVincentyEarthModel.STATIC)

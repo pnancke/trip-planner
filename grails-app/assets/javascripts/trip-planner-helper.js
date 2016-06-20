@@ -70,10 +70,10 @@ function clearMarkers() {
     clusterCenterLayer.destroyFeatures();
 }
 
-function drawCircle(lat, lon) {
+function drawCircle(lat, lon, range) {
     var current_point = new OpenLayers.Geometry.Point(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-    var max_distance_to_cluster_center = 10000;
-    var circle_geometry = new OpenLayers.Geometry.Polygon.createRegularPolygon(current_point, max_distance_to_cluster_center, 50, 0);
+    //see Issue #68
+    var circle_geometry = OpenLayers.Geometry.Polygon.createRegularPolygon(current_point, range * 1.66, 50, 0);
     clusterCenterLayer.addFeatures([new OpenLayers.Feature.Vector(circle_geometry)]);
 }
 
