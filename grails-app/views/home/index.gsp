@@ -45,6 +45,7 @@
         $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
                 + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang, {}, function (data) {
         }).done(function (response) {
+            clearMarkers();
             $('#submit-route-button').prop('disabled', false);
             stopSpinner();
             var responseJson = JSON.parse(response);
@@ -57,11 +58,13 @@
                 var poiClusters = responseJson.pois;
                 var pois = [];
                 var clusterCenters = [];
-                clearMarkers();
                 for (var i = 0; i < poiClusters.length; i++) {
                     pois.push.apply(pois, poiClusters[i].points);
                     clusterCenters.push(poiClusters[i].clusterCenter);
-                    drawCircle(poiClusters[i].clusterCenter.lat, poiClusters[i].clusterCenter.lon);
+                    var METRES_IN_KILOMETRES = 1000;
+                    drawCircle(poiClusters[i].clusterCenter.lat,
+                            poiClusters[i].clusterCenter.lon,
+                            poiClusters[i].clusterRange * METRES_IN_KILOMETRES);
                 }
                 addMarkers(pois);
             }
