@@ -16,14 +16,13 @@ import trip.planner.osm.model.PointCluster
 import java.util.stream.Collectors
 
 import static trip.planner.osm.api.ElkiWrapper.extractClusters
-import static trip.planner.osm.api.ElkiWrapper.filterOutliers
 
 class ClusterHelper {
 
     private static int K_MEANS_CLUSTER_SIZE = 10
     private static final int MAX_K_MEANS_ITERATIONS = 50
     private static final BigDecimal MIN_MEAN_PERCENTAGE_CLUSTER_SIZE = 0.8
-    private static final int MAX_DISTANCE_TO_CLUSTER_CENTER = 10
+    private static final Double MAX_DISTANCE_TO_CLUSTER_CENTER_IN_KILOMETRES = 5.0
     private static final BigDecimal KILOMETRES_PER_MILE = 1.609344
     private static final int MINUTES_IN_DEGREE = 60
     private static final BigDecimal NAUTICAL_MILE = 1.1515
@@ -85,14 +84,7 @@ class ClusterHelper {
         Queue<PointCluster> queue = new LinkedList<PointCluster>(filteredClusters);
         while (!queue.isEmpty()) {
             PointCluster cluster = queue.remove()
-            int maxPointClusterDistance = 0
-            for (point in cluster.points) {
-                double currDistance = distance(point, cluster.clusterCenter)
-                if (currDistance > maxPointClusterDistance) {
-                    maxPointClusterDistance = currDistance
-                }
-            }
-            if (maxPointClusterDistance > MAX_DISTANCE_TO_CLUSTER_CENTER) {
+            if (cluster.clusterRange > MAX_DISTANCE_TO_CLUSTER_CENTER_IN_KILOMETRES) {
                 def newClusters = convert(extractClusters(cluster.points, K_MEANS_CLUSTER_SIZE, MAX_K_MEANS_ITERATIONS))
                 for (it in newClusters) {
                     queue.add(it)
@@ -102,5 +94,20 @@ class ClusterHelper {
             }
         }
         filteredClustersByRange
+    }
+
+    private static List<PointCluster> filterOutliers(List<PointCluster> allClusters,
+                                                     int partitionSize,
+                                                     double minMeanPercentageClusterSize) {
+        int allPointsCount = 0
+        allClusters.each { allPointsCount += it.size() }
+        int averageSize = allPointsCount / partitionSize
+        ArrayList<PointCluster> filteredClusters = new ArrayList<>()
+        allClusters.each {
+            if (it.size() > minMeanPercentageClusterSize * averageSize) {
+                filteredClusters.add(it)
+            }
+        }
+        filteredClusters
     }
 }

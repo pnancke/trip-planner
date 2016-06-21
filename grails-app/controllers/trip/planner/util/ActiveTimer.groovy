@@ -21,7 +21,7 @@ class ActiveTimer {
     public long stopAndLog(Log log, String additionalInfo) {
         watch.stop()
         long millis = watch.lastTaskTimeMillis
-        log.info "needs:  $millis ms, for $additionalInfo"
+        log.info "$additionalInfo took $millis ms."
         millis
     }
 
