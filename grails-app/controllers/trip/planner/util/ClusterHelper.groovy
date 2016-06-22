@@ -29,13 +29,15 @@ class ClusterHelper {
     private static final BigDecimal SEMICIRCLE_DEGREES = 180.0
 
     public static double distance(Point a, Point b) {
+        physicalDistance(a, b) * MINUTES_IN_DEGREE * NAUTICAL_MILE * KILOMETRES_PER_MILE
+    }
+
+    public static double physicalDistance(Point a, Point b) {
         double theta = a.lon - b.lon
         double dist = Math.sin(deg2rad(a.lat)) * Math.sin(deg2rad(b.lat)) + Math.cos(deg2rad(a.lat)) * Math.cos(deg2rad(b.lat)) * Math.cos(deg2rad(theta))
 
         dist = Math.acos(dist)
-        dist = rad2deg(dist)
-        dist = dist * MINUTES_IN_DEGREE * NAUTICAL_MILE * KILOMETRES_PER_MILE
-        dist
+        rad2deg(dist)
     }
 
     private static double rad2deg(double rad) {
@@ -47,7 +49,7 @@ class ClusterHelper {
     }
 
     public static List<Point> convert(List<PointOfInterest> pointOfInterests) {
-        pointOfInterests.stream().map({ poi -> new Point(poi.lon, poi.lat) }).collect(Collectors.toList())
+        pointOfInterests.stream().map({ poi -> new Point(poi.point.x, poi.point.y) }).collect(Collectors.toList())
     }
 
     public static List<PointCluster> convert(Pair<Database, List<Cluster<KMeansModel>>> pair) {
@@ -57,7 +59,7 @@ class ClusterHelper {
         List<Cluster<KMeansModel>> kMeansModelCluster = pair.getB()
         kMeansModelCluster.each { Cluster<KMeansModel> clu ->
             def clusterCenter = clu.getModel().getPrototype()
-            def cluster = new PointCluster(new Point(clusterCenter.get(1), clusterCenter.get(0)))
+            def cluster = new PointCluster(new Point(clusterCenter.get(0), clusterCenter.get(1)))
             for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
                 DoubleVector v = rel.get(it) as DoubleVector
                 cluster.addPoint(v.getValues())
@@ -94,6 +96,13 @@ class ClusterHelper {
             }
         }
         filteredClustersByRange
+    }
+
+    static Point nearest(Point p, List<Point> route) {
+        route.min {
+            Point a, Point b ->
+                physicalDistance(p, a) <=> physicalDistance(p, b)
+        }
     }
 
     private static List<PointCluster> filterOutliers(List<PointCluster> clusters,

@@ -15,7 +15,7 @@ import trip.planner.util.ActiveTimer
 import trip.planner.util.SortByClusterCenter
 
 import static trip.planner.util.ClusterHelper.extractCoordinateClusterWithoutOutliers
-import static trip.planner.util.ListUtils.*
+import static trip.planner.util.ListUtils.mapToPoints
 
 class HomeController {
 
@@ -27,6 +27,7 @@ class HomeController {
     def getRoute(String start, String destination, int additionalTravelTime, String lang) {
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
+        Double searchArea = 0.06
 
         if (startPoint == null && destPoint == null) {
             render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
@@ -43,7 +44,8 @@ class HomeController {
             for (int i = 1; i < 4; i++) {
                 try {
                     RouteSegment routeCoordinates = getRouteCoordinates(startPoint, destPoint)
-                    List<PointCluster> poiCoordinates = getPOIs(startPoint, destPoint)
+
+                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(routeCoordinates.route, searchArea)
                     def startCoords = [startPoint.lat, startPoint.lon]
                     WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint)
 
@@ -107,16 +109,20 @@ class HomeController {
         routeSegment
     }
 
-    private static List<PointCluster> getPOIs(Point startLatLon, Point destLatLon) {
+    public static List<PointCluster> getPOIsInRouteArea(List<Point> route, Double area) {
         ActiveTimer timer = new ActiveTimer()
-        List<PointOfInterest> pois = PointOfInterest.getPOIsInBBox(startLatLon, destLatLon)
+        List<PointOfInterest> pois = PointOfInterestService.poisFoundInRouteArea(route, area)
         timer.stopAndLog(log, "POI extracting")
+        if (pois.isEmpty()) {
+            return []
+        }
         timer.reset()
         List<PointCluster> poiClusters = extractCoordinateClusterWithoutOutliers(pois)
         timer.stopAndLog(log, "Clustering")
 
         log.info "found ${pois.size()} nodes"
         log.info "after clustering, ${poiClusters.size()} cluster are given"
+
         poiClusters
     }
 
