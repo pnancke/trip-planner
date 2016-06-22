@@ -35,8 +35,8 @@ class Point {
     @Override
     public String toString() {
         return "Point{" +
-                "lon=" + lon +
-                ", lat=" + lat +
+                "lat=" + lat +
+                ", lon=" + lon +
                 '}';
     }
 }
