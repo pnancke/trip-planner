@@ -20,6 +20,7 @@ class HomeControllerIntegrationSpec extends Specification {
     private static final String NOT_EXISTING_CITY_1 = "not-existing-15451245"
     private static final String NOT_EXISTING_CITY_2 = "not-existing-10092454"
     private static final String LANG_DE = "de"
+    private static final String BERLIN = "Berlin"
 
     @Autowired
     WebApplicationContext ctx
@@ -32,7 +33,7 @@ class HomeControllerIntegrationSpec extends Specification {
         RequestContextHolder.resetRequestAttributes()
     }
 
-    void "test get route returns OK"() {
+    void "get route returns OK"() {
         when:
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
@@ -42,17 +43,18 @@ class HomeControllerIntegrationSpec extends Specification {
         response.status == HttpStatus.SC_OK
     }
 
-    void "test get route starts with start point"() {
+    void "get route starts with start point"() {
         when:
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
         def response = controller.response
 
         then:
-        response.content.toString().startsWith('{"success":true,"route":[{"lat":51.34121,"lon":12.38284},')
+        response.content.toString().startsWith('{"success":true,"route":[{"lat":51.3')
+        response.content.toString().contains('"lon":12.38')
     }
 
-    void "test get route starts with success true"() {
+    void "get route starts with success true"() {
         when:
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
@@ -62,7 +64,7 @@ class HomeControllerIntegrationSpec extends Specification {
         response.content.toString().startsWith('{"success":true,')
     }
 
-    void "test get route contains start coordinates"() {
+    void "get route contains start coordinates"() {
         when:
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
@@ -72,7 +74,18 @@ class HomeControllerIntegrationSpec extends Specification {
         response.content.toString().contains('"startCoordinates":[51.3391827,12.3810549]')
     }
 
-    void "test get route contains cluster range"() {
+    void "get route with larger route works"() {
+        when:
+        controller.getRoute(LEIPZIG, BERLIN, 0, LANG_DE)
+        String content = controller.response.content.toString()
+
+        then:
+        content.startsWith('{"success":true,"route":[{"lat":51.3')
+        content.contains('"lon":12.38')
+        content.contains('"startCoordinates":[51.3391827,12.3810549]')
+    }
+
+    void "get route contains cluster range"() {
         when:
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
@@ -82,7 +95,7 @@ class HomeControllerIntegrationSpec extends Specification {
         response.content.toString().contains('{"clusterRange":')
     }
 
-    void "test get route with not existing start place"() {
+    void "get route with not existing start place"() {
         when:
         controller.getRoute(NOT_EXISTING_CITY_1, LEIPZIG, 0, LANG_DE)
 
@@ -93,7 +106,7 @@ class HomeControllerIntegrationSpec extends Specification {
                 + '\'!"}')
     }
 
-    void "test get route with not existing destination place"() {
+    void "get route with not existing destination place"() {
         when:
         controller.getRoute(LEIPZIG, NOT_EXISTING_CITY_1, 0, LANG_DE)
 
@@ -104,7 +117,7 @@ class HomeControllerIntegrationSpec extends Specification {
                 + '\'!"}')
     }
 
-    void "test get route with not existing start and destination place"() {
+    void "get route with not existing start and destination place"() {
         when:
         controller.getRoute(NOT_EXISTING_CITY_1, NOT_EXISTING_CITY_2, 0, LANG_DE)
 
@@ -113,5 +126,15 @@ class HomeControllerIntegrationSpec extends Specification {
         then:
         response.content.toString().equals('{"success":false,"error":"Error: Unable to find \'' + NOT_EXISTING_CITY_1
                 + '\' and \'' + NOT_EXISTING_CITY_2 + '\'!"}')
+    }
+
+    void "get route with equal start and destination place"() {
+        when:
+        controller.getRoute(LEIPZIG, LEIPZIG, 0, LANG_DE)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().equals('{"success":false,"error":"Error: Unable to generate route, given places are equal."}')
     }
 }

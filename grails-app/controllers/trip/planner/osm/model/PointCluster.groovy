@@ -20,7 +20,7 @@ class PointCluster {
     }
 
     public void addPoint(double[] point) {
-        this.points.add(new Point(point[1], point[0]))
+        this.points.add(new Point(point[0], point[1]))
         calculateClusterRange()
     }
 

@@ -46,7 +46,7 @@ class NominationApi {
         } else {
             Double lat = Double.parseDouble(latString)
             Double lon = Double.parseDouble(lonString)
-            this.point = new Point(lon, lat)
+            this.point = new Point(lat, lon)
             success = status == HttpStatus.OK && !lat.naN && !lon.naN
         }
         timer.stopAndLog(log)

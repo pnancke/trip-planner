@@ -1,14 +1,13 @@
 package trip.planner
 
-import com.google.common.base.Preconditions
-import trip.planner.osm.api.Point
+import com.vividsolutions.jts.geom.Point
+import trip.planner.util.GeometryType
 
 class PointOfInterest {
 
     Integer poiId
     String osm_id
-    Double lat
-    Double lon
+    Point point
     String access
     String addr_housename
     String addr_housenumber
@@ -147,32 +146,11 @@ class PointOfInterest {
 
     static mapping = {
         table 'point_of_interest'
+        point type: GeometryType
         id column: "poi_id",
                 name: "poiId",
                 type: 'integer',
                 generator: 'identity'
-    }
-
-    static List<PointOfInterest> getPOIsInBBox(Point start, Point end) {
-        if (!coordinatesAreInRightOrder(start, end)) {
-            Point tmp = start
-            start = end
-            end = tmp
-        }
-        findAllByLatBetweenAndLonBetween(start.lat, end.lat, start.lon, end.lon)
-    }
-
-    static boolean coordinatesAreInRightOrder(Point start, Point destination) {
-        Preconditions.checkNotNull(start.lon)
-        Preconditions.checkNotNull(start.lat)
-        Preconditions.checkNotNull(destination.lon)
-        Preconditions.checkNotNull(destination.lat)
-
-        if (start.lat == destination.lat && start.lon == destination.lon) {
-            throw new IllegalArgumentException("The start-position equals the destination-position!")
-        }
-
-        return (start.lon <= destination.lon && start.lat <= destination.lat)
     }
 
     @Override
@@ -181,8 +159,7 @@ class PointOfInterest {
                 "id=" + id +
                 ", poiId=" + poiId +
                 ", osm_id='" + osm_id + '\'' +
-                ", lat='" + lat + '\'' +
-                ", lon='" + lon + '\'' +
+                ", point='" + point.coordinate.toString() + '\'' +
                 ", access='" + access + '\'' +
                 ", addr_housename='" + addr_housename + '\'' +
                 ", addr_housenumber='" + addr_housenumber + '\'' +

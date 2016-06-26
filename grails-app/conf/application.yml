@@ -10,7 +10,7 @@ dataSource:
     pooled: true
     jmxExport: true
     driverClassName: com.mysql.jdbc.Driver
-    dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    dialect: org.hibernate.spatial.dialect.mysql.MySQLSpatialDialect
     username: root
     password:
 

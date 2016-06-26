@@ -2,12 +2,19 @@ package trip.planner.osm.api
 
 class Point {
 
-    double lon
-    double lat
+    Double lat
+    Double lon
 
-    Point(double lon, double lat) {
-        this.lon = lon
+    Point(Double lat, Double lon) {
+        Objects.requireNonNull(lat)
+        Objects.requireNonNull(lon)
+
         this.lat = lat
+        this.lon = lon
+    }
+
+    public String toStringDarrinWardFormat() {
+        return "$lat,$lon\n"
     }
 
     boolean equals(o) {
@@ -32,11 +39,12 @@ class Point {
         return result
     }
 
+    public String toShortString() {
+        return lat + ' ' + lon
+    }
+
     @Override
     public String toString() {
-        return "Point{" +
-                "lat=" + lat +
-                ", lon=" + lon +
-                '}';
+        return "[" + lat + "," + lon + "]";
     }
 }

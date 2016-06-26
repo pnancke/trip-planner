@@ -83,7 +83,7 @@ if [ "${CLEAR_DB}" = true ] ; then
 fi
 
 echo -n -e "${NORMAL}Creating table...\t\t\t"
-sudo mysql -e "CREATE TABLE IF NOT EXISTS point_of_interest ( poi_id BIGINT unsigned NOT NULL auto_increment, osm_id BIGINT, lat DECIMAL(10, 8) default NULL, lon DECIMAL(11, 8) default NULL, PRIMARY KEY  (poi_id), KEY lat (lat), KEY lon (lon), version TEXT, changeset TEXT, access TEXT, addr_housename TEXT, addr_housenumber TEXT, addr_interpolation TEXT, admin_level TEXT, aerialway TEXT, aeroway TEXT, amenity TEXT, area TEXT, barrier TEXT, bicycle TEXT, brand TEXT, bridge TEXT, boundary TEXT, building TEXT, capital TEXT, construction TEXT, covered TEXT, culvert TEXT, cutting TEXT, denomination TEXT, disused TEXT, ele TEXT, embankment TEXT, foot TEXT, generator_source TEXT, harbour TEXT, highway TEXT, historic TEXT, horse TEXT, intermittent TEXT, junction TEXT, landuse TEXT, layer TEXT, leisure TEXT, ship_lock TEXT, man_made TEXT, military TEXT, motorcar TEXT, name TEXT, osm_natural TEXT, office TEXT, oneway TEXT, operator TEXT, place TEXT, poi TEXT, population TEXT, power TEXT, power_source TEXT, public_transport TEXT, railway TEXT, ref TEXT, religion TEXT, route TEXT, service TEXT, shop TEXT, sport TEXT, surface TEXT, toll TEXT, tourism TEXT, tower_type TEXT, tunnel TEXT, water TEXT, waterway TEXT, wetland TEXT, width TEXT) ENGINE=InnoDB;" trip_planner
+sudo mysql -e "CREATE TABLE IF NOT EXISTS point_of_interest ( poi_id BIGINT unsigned NOT NULL auto_increment, osm_id BIGINT, PRIMARY KEY  (poi_id), point POINT NOT NULL, SPATIAL INDEX(point),  version TEXT, changeset TEXT, access TEXT, addr_housename TEXT, addr_housenumber TEXT, addr_interpolation TEXT, admin_level TEXT, aerialway TEXT, aeroway TEXT, amenity TEXT, area TEXT, barrier TEXT, bicycle TEXT, brand TEXT, bridge TEXT, boundary TEXT, building TEXT, capital TEXT, construction TEXT, covered TEXT, culvert TEXT, cutting TEXT, denomination TEXT, disused TEXT, ele TEXT, embankment TEXT, foot TEXT, generator_source TEXT, harbour TEXT, highway TEXT, historic TEXT, horse TEXT, intermittent TEXT, junction TEXT, landuse TEXT, layer TEXT, leisure TEXT, ship_lock TEXT, man_made TEXT, military TEXT, motorcar TEXT, name TEXT, osm_natural TEXT, office TEXT, oneway TEXT, operator TEXT, place TEXT, poi TEXT, population TEXT, power TEXT, power_source TEXT, public_transport TEXT, railway TEXT, ref TEXT, religion TEXT, route TEXT, service TEXT, shop TEXT, sport TEXT, surface TEXT, toll TEXT, tourism TEXT, tower_type TEXT, tunnel TEXT, water TEXT, waterway TEXT, wetland TEXT, width TEXT) ENGINE=MyISAM;" trip_planner
 if [ $? -eq 0 ]; then
     echo -e ${GREEN}OK
 else
@@ -113,6 +113,13 @@ sed 's/^/INSERT INTO point_of_interest VALUES (NULL,/' -i tmp/inserts.sql
 sed 's/$/);/' -i tmp/inserts.sql
 # replace ,); with );
 sed 's/,);/);/g' -i tmp/inserts.sql
+
+# Create Point(lat lon) from "lat", "lon"
+sed 's/,"/,ST_PointFromText("POINT(/2' -i tmp/inserts.sql
+sed 's/,/ /3' -i tmp/inserts.sql
+sed 's/",/)"),/2' -i tmp/inserts.sql
+sed 's/"//4' -i tmp/inserts.sql
+sed 's/"//4' -i tmp/inserts.sql
 if [ $? -eq 0 ]; then
     echo -e ${GREEN}OK
 else
