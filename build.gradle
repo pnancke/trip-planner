@@ -62,7 +62,7 @@ dependencies {
     compile 'de.lmu.ifi.dbs.elki:elki:0.7.1'
     profile "org.grails.profiles:web:3.1.4"
     runtime "org.grails.plugins:asset-pipeline"
-    runtime 'mysql:mysql-connector-java:5.1.29'
+    runtime 'mysql:mysql-connector-java:6.0.2'
     testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails.plugins:geb"
     testRuntime "org.seleniumhq.selenium:selenium-chrome-driver:2.53.0"
