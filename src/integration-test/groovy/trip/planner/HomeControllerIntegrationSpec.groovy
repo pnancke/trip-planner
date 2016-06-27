@@ -48,7 +48,7 @@ class HomeControllerIntegrationSpec extends Specification {
         controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE)
 
         def response = controller.response
-
+        //TODO: fix this
         then:
         response.content.toString().startsWith('{"success":true,"route":[{"lat":51.3')
         response.content.toString().contains('"lon":12.38')
