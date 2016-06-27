@@ -9,7 +9,7 @@ hibernate:
 dataSource:
     pooled: true
     jmxExport: true
-    driverClassName: com.mysql.jdbc.Driver
+    driverClassName: com.mysql.cj.jdbc.Driver
     dialect: org.hibernate.spatial.dialect.mysql.MySQLSpatialDialect
     username: root
     password:
@@ -18,15 +18,18 @@ environments:
     development:
         dataSource:
             dbCreate: update
-            url: jdbc:mysql://localhost:3306/trip_planner #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            logSql: true
+            url: jdbc:mysql://localhost:3306/trip_planner?tz=useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
     test:
         dataSource:
             dbCreate: update
-            url: jdbc:mysql://localhost:3306/trip_planner #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            logSql: true
+            url: jdbc:mysql://localhost:3306/trip_planner?tz=useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
     production:
         dataSource:
             dbCreate: update
-            url: jdbc:mysql://localhost:3306/trip_planner #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            url: jdbc:mysql://localhost:3306/trip_planner?tz=useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin #;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+            logSql: true
             properties:
                 jmxEnabled: true
                 initialSize: 5
@@ -45,6 +48,7 @@ environments:
                 testOnReturn: false
                 jdbcInterceptors: ConnectionState
                 defaultTransactionIsolation: 2 # TRANSACTION_READ_COMMITTED
+                serverTimezone:
 
 ---
 ---

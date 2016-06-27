@@ -5,7 +5,6 @@ import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import grails.util.GrailsWebMockUtil
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.orm.hibernate5.HibernateQueryException
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.request.RequestContextHolder
 import spock.lang.Specification
@@ -21,8 +20,6 @@ import static trip.planner.PointOfInterestService.*
 class PointOfInterestIntegrationSpec extends Specification {
 
     private static final int SIZE_OF_GERMANY = 16919
-    private static final String CONTAINS_POLYGON_STATEMENT = "from PointOfInterest where " +
-            "st_contains(GeomFromText(?), point) = TRUE"
     private static final int SIZE_OF_POIS_TO_MUNICH = 236
     private static final Point LEIPZIG = new Point(51.3, 12.38)
     private static final Point MARKKLEEBERG = new Point(51.276857, 12.372894)
@@ -42,22 +39,9 @@ class PointOfInterestIntegrationSpec extends Specification {
         RequestContextHolder.resetRequestAttributes()
     }
 
-    void "force index request fails on unexpected token"() {
+    void "get pois with route area works"() {
         when:
-        String query = "from trip.planner.PointOfInterest force index (point)" +
-                " where st_contains(GeomFromText('Polygon((0 0, 0 100, 100 100,100 0,0 0))'), point) = TRUE"
-        execute(query)
-
-        then:
-        def ex = thrown(HibernateQueryException)
-        ex.message == "unexpected token: index near line 1, column 41 [" + query + "];" +
-                " nested exception is org.hibernate.hql.internal.ast.QuerySyntaxException: " +
-                "unexpected token: index near line 1, column 41 [" + query + "]"
-    }
-
-    void "get pois with route area works with where"() {
-        when:
-        List<PointOfInterest> pois = containsPolygon(CONTAINS_POLYGON_STATEMENT,
+        List<PointOfInterest> pois = containsPolygon(CONTAINS_STATEMENT,
                 Polygon.coords([0, 0, 0, 100, 100, 100, 100, 0, 0, 0]))
 
         then:
@@ -65,9 +49,9 @@ class PointOfInterestIntegrationSpec extends Specification {
         pois.size() == SIZE_OF_GERMANY
     }
 
-    void "complex poi request works with where"() {
+    void "complex poi request works"() {
         when:
-        List<PointOfInterest> pois = containsPolygon(CONTAINS_POLYGON_STATEMENT,
+        List<PointOfInterest> pois = containsPolygon(CONTAINS_STATEMENT,
                 new Polygon(extractRoute(MUNICH_POLYGON)).toString())
 
         then:

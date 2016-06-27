@@ -2,6 +2,7 @@ package trip.planner
 
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import org.hibernate.SQLQuery
 import trip.planner.osm.api.Circle
 import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
@@ -11,6 +12,8 @@ import java.util.stream.Collectors
 
 class PointOfInterestService {
 
+    public static final String CONTAINS_STATEMENT = "SELECT * FROM point_of_interest FORCE INDEX (point)" +
+            " WHERE ST_CONTAINS(GeomFromText(:polygon), point) = TRUE"
     private static final Log log = LogFactory.getLog(PointOfInterestService.class)
 
     public static List<PointOfInterest> poisFoundInRouteArea(List<Point> route, Double area) {
@@ -43,7 +46,7 @@ class PointOfInterestService {
     public static Pair<String, String> generatePolygonQueryPair(List<Point> route, Double area) {
         Double circleArea = area
         if (route.isEmpty()) {
-            return new Pair<>("", [:])
+            return new Pair<>("", "")
         }
         Circle beginFilter = new Circle(route.first(), circleArea)
         Circle endFilter = new Circle(route.last(), circleArea)
@@ -71,8 +74,7 @@ class PointOfInterestService {
         }
         polygonShape.add(polygonShape.get(0))
 
-        new Pair<>("FROM PointOfInterest WHERE ST_CONTAINS(GeomFromText(?), point) = TRUE",
-                new Polygon(polygonShape).toString())
+        new Pair<>(CONTAINS_STATEMENT, new Polygon(polygonShape).toString())
     }
 
     private static List<Point> shifting(List<Point> route, double area, Circle endFilter, Circle beginFilter) {
@@ -92,10 +94,11 @@ class PointOfInterestService {
     }
 
     public static List<PointOfInterest> containsPolygon(String query, String polygon) {
-        PointOfInterest.executeQuery(query, [polygon])
-    }
-
-    public static List<PointOfInterest> execute(String query) {
-        PointOfInterest.executeQuery(query)
+        List<PointOfInterest> result = new ArrayList<>()
+        PointOfInterest.withSession {
+            SQLQuery sqlQuery = it.createSQLQuery(query)
+            result = sqlQuery.addEntity(PointOfInterest).setString('polygon', polygon).list()
+        }
+        result
     }
 }
