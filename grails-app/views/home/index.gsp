@@ -32,18 +32,23 @@
         });
     });
 
+    function changeAreaValue(newValue) {
+        document.getElementById("area-range").innerHTML = newValue;
+    }
+
     function drawRoute() {
         var secondsInAnHour = 3600;
         getRoute($('#location-search-start').val(), $('#location-search-destination').val(),
-                $('#additional-time-selector').val() * secondsInAnHour);
+                $('#additional-time-selector').val() * secondsInAnHour, $('#search-area-range').val());
     }
 
-    function getRoute(start, destination, additionalTravelTime) {
+    function getRoute(start, destination, additionalTravelTime, searchArea) {
         var userLang = navigator.language || navigator.userLanguage;
         $('#submit-route-button').prop('disabled', true);
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
-                + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang, {}, function (data) {
+                + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang + "&searchArea=" + searchArea
+                , {}, function (data) {
         }).done(function (response) {
             clearMarkers();
             $('#submit-route-button').prop('disabled', false);
@@ -89,7 +94,10 @@
             value="0.5"
             min="0.1"
             step="0.1">
-        <br/>
+        <br/><br/><br/>
+        <label for="search-area-range">Diameter of search area:</label><span id="area-range">16</span> km
+        <input type="range" id="search-area-range" min="8" max="40" value="16" step="8"
+               onchange="changeAreaValue(this.value)"/>
 
         <p></p><br/>
         <button type="submit" id="submit-route-button" class="standalone-button" onclick="drawRoute()">Submit</button>
