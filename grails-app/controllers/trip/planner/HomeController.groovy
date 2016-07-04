@@ -21,13 +21,13 @@ class HomeController {
 
     private static Log log = LogFactory.getLog(HomeController.class)
     private static final int THREAD_COUNT = 3
+    private static final Double TOO_HIGH_SEARCH_AREA = 100.0
 
     def index() {}
 
-    def getRoute(String start, String destination, int additionalTravelTime, String lang) {
+    def getRoute(String start, String destination, int additionalTravelTime, String lang, Double searchArea) {
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
-        Double searchArea = 0.06
 
         if (startPoint == null && destPoint == null) {
             render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
@@ -40,12 +40,18 @@ class HomeController {
                 render createErrorMessage("Error: Unable to generate route, given places are equal.")
                 return
             }
+            if (searchArea > TOO_HIGH_SEARCH_AREA) {
+                render createErrorMessage("Error: Unable to generate route, given searchArea is too high.")
+                return
+            }
+
+            Double area = (searchArea * 0.03) / 8.0
 
             for (int i = 1; i < 4; i++) {
                 try {
                     RouteSegment routeCoordinates = getRouteCoordinates(startPoint, destPoint)
 
-                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(routeCoordinates.route, searchArea)
+                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(routeCoordinates.route, area)
                     def startCoords = [startPoint.lat, startPoint.lon]
                     WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint)
 
