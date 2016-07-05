@@ -22,13 +22,21 @@ class ElkiWrapper {
                                                                            int maxKMeansIterations) {
         LoggingConfiguration.setStatistics()
         double[][] data = convert(points)
-        StaticArrayDatabase db = createDatabase(data)
+        String[] labels = extractWikiLabels(points)
+        StaticArrayDatabase db = createDatabase(data, labels)
         Clustering<KMeansModel> c = createKMeans(kMeansPartitions, maxKMeansIterations).run(db)
         ArrayList<Cluster<KMeansModel>> clusters = c.getAllClusters()
         def pair = new Pair<Database, ArrayList<Cluster<KMeansModel>>>(db, clusters)
         pair
     }
 
+    static String[] extractWikiLabels(List<Point> points) {
+        def strings = new String[points.size()]
+        points.eachWithIndex { point, i ->
+            strings[i] = point.label
+        }
+        strings
+    }
 
     private static KMeansLloyd<NumberVector> createKMeans(int kMeansPartitions, int maxKMeansIterations) {
         LatLngDistanceFunction dist = new LatLngDistanceFunction(SphericalVincentyEarthModel.STATIC)
@@ -37,8 +45,8 @@ class ElkiWrapper {
         km
     }
 
-    private static StaticArrayDatabase createDatabase(double[][] data) {
-        DatabaseConnection dbc = new ArrayAdapterDatabaseConnection(data)
+    private static StaticArrayDatabase createDatabase(double[][] data, String[] labels) {
+        DatabaseConnection dbc = new ArrayAdapterDatabaseConnection(data, labels)
         Database db = new StaticArrayDatabase(dbc, null)
         db.initialize();
         db

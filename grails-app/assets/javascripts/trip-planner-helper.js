@@ -1,7 +1,9 @@
 var map;
-var markerLayer;
 var lineLayer;
 var clusterCenterLayer;
+var vectorLayer;
+var epsg4326;
+var projectTo;
 var lineStyle = {
     strokeColor: '#0000ff',
     strokeOpacity: 0.5,
@@ -10,14 +12,27 @@ var lineStyle = {
 
 function init() {
     resizeMap();
+    epsg4326 = new OpenLayers.Projection("EPSG:4326"); //WGS 1984 projection
     map = new OpenLayers.Map("basicMap", {
-        projection: new OpenLayers.Projection("EPSG:4326"),
-        displayProjection: new OpenLayers.Projection("EPSG:4326")
+        projection: epsg4326,
+        displayProjection: epsg4326
     });
-    var ol = new OpenLayers.Layer.OSM();
-    map.addLayer(ol);
-    markerLayer = new OpenLayers.Layer.Markers("Markers");
-    map.addLayer(markerLayer);
+
+    map.addLayer(new OpenLayers.Layer.OSM());
+    projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
+
+    vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+    map.addLayer(vectorLayer);
+
+    var controls = {
+        selector: new OpenLayers.Control.SelectFeature(vectorLayer, {
+            onSelect: createPopup,
+            onUnselect: destroyPopup
+        })
+    };
+
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
 
     lineLayer = new OpenLayers.Layer.Vector("Line Layer");
     map.addLayer(lineLayer);
@@ -29,10 +44,32 @@ function init() {
 
     map.setCenter(new OpenLayers.LonLat(13.41, 52.52)
         .transform(
-            new OpenLayers.Projection("EPSG:4326"),
+            epsg4326,
             new OpenLayers.Projection("EPSG:900913")
         ), 15
     );
+}
+
+function createPopup(feature) {
+    if (feature.attributes.description) {
+        var label = feature.attributes.description.split(":");
+        feature.popup = new OpenLayers.Popup.FramedCloud("popup",
+            feature.geometry.getBounds().getCenterLonLat(),
+            null,
+            '<div class="wikilink"><a href="https://' + label[0] + '.wikipedia.org/wiki/' + label[1] + '" target="_blank">' + label[1] + '</a></div>',
+            null,
+            false,
+            function () {
+                controls['selector'].unselectAll();
+            }
+        );
+        map.addPopup(feature.popup);
+    }
+}
+
+function destroyPopup(feature) {
+    feature.popup.destroy();
+    feature.popup = null;
 }
 
 function drawLine(arrayOfPoints, startCoordinates) {
@@ -40,7 +77,7 @@ function drawLine(arrayOfPoints, startCoordinates) {
     var points = [];
     arrayOfPoints.forEach(function (entry) {
         points.push(new OpenLayers.Geometry.Point(entry.lon, entry.lat)
-            .transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject()))
+            .transform(epsg4326, map.getProjectionObject()))
     });
 
     var line = new OpenLayers.Geometry.LineString(points);
@@ -48,30 +85,52 @@ function drawLine(arrayOfPoints, startCoordinates) {
     var lineFeature = new OpenLayers.Feature.Vector(line, null, lineStyle);
     lineLayer.addFeatures([lineFeature]);
 
+
     map.setCenter(new OpenLayers.LonLat(startCoordinates[1], startCoordinates[0]).transform(
-        new OpenLayers.Projection("EPSG:4326"),
+        epsg4326,
         new OpenLayers.Projection("EPSG:900913")
     ), 15);
 }
 
-function addMarker(lat, lon) {
-    var lonLat = new OpenLayers.LonLat(lon, lat)
-        .transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-    markerLayer.addMarker(new OpenLayers.Marker(lonLat));
+function createVector(lon, lat, label, graphic) {
+    return new OpenLayers.Feature.Vector(
+        new OpenLayers.Geometry.Point(lon, lat).transform(epsg4326, projectTo),
+        {description: label},
+        {
+            externalGraphic: graphic,
+            graphicHeight: 25,
+            graphicWidth: 21,
+            graphicXOffset: -12,
+            graphicYOffset: -25
+        }
+    );
+}
+function addMarker(lat, lon, label) {
+    var feature;
+    if (label) {
+        feature = createVector(lon, lat, label, '/assets/marker.png');
+    } else {
+        feature = createVector(lon, lat, label, '/assets/marker-blue.png');
+    }
+    vectorLayer.addFeatures(feature);
 }
 
 function addMarkers(coordinates) {
     for (var i = 0; i < coordinates.length; i++) {
-        addMarker(coordinates[i].lat, coordinates[i].lon);
+        addMarker(coordinates[i].lat, coordinates[i].lon, coordinates[i].label);
     }
 }
-function clearMarkers() {
-    markerLayer.clearMarkers();
+function clearMap() {
+    vectorLayer.destroyFeatures();
     clusterCenterLayer.destroyFeatures();
+    var pops = map.popups;
+    for (var a = 0; a < pops.length; a++) {
+        map.removePopup(map.popups[a]);
+    }
 }
 
 function drawCircle(lat, lon, range) {
-    var current_point = new OpenLayers.Geometry.Point(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+    var current_point = new OpenLayers.Geometry.Point(lon, lat).transform(epsg4326, map.getProjectionObject());
     //see Issue #68
     var circle_geometry = OpenLayers.Geometry.Polygon.createRegularPolygon(current_point, range * 1.66, 50, 0);
     clusterCenterLayer.addFeatures([new OpenLayers.Feature.Vector(circle_geometry)]);
@@ -107,18 +166,24 @@ function generateAutocompleteData(json) {
                 .filter(function (str) {
                     return str;
                 }).join(' ');
-            var label = [name, address].filter(function (str) {
-                return str;
-            }).join(', ');
+            var label;
+
+            if (name == val.properties.street || name == val.properties.housenumber || name == val.properties.city
+                || name == val.properties.country) {
+                label = [address].join(', ');
+            } else {
+                label = [name, address].join(', ');
+            }
             currItem = {
                 "label": label
             };
+
             items.push(currItem);
         }
     });
     var uniqueItems = [];
-    $.each(items, function(i, el){
-        if($.inArray(el.label, uniqueItems) === -1) uniqueItems.push(el.label);
+    $.each(items, function (i, el) {
+        if ($.inArray(el.label, uniqueItems) === -1) uniqueItems.push(el.label);
     });
     return uniqueItems;
 }

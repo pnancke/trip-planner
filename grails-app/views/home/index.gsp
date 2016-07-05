@@ -50,7 +50,7 @@
                 + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang + "&searchArea=" + searchArea
                 , {}, function (data) {
         }).done(function (response) {
-            clearMarkers();
+            clearMap();
             $('#submit-route-button').prop('disabled', false);
             stopSpinner();
             var responseJson = JSON.parse(response);
