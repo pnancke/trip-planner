@@ -73,6 +73,7 @@ class PointOfInterest {
     String water
     String waterway
     String wetland
+    String wikipedia
     String width
 
     static constraints = {
@@ -142,6 +143,14 @@ class PointOfInterest {
         waterway nullable: true
         wetland nullable: true
         width nullable: true
+    }
+
+    String getWikipedia() {
+        if (this.wikipedia != "NULL") {
+            this.wikipedia
+        } else {
+            null
+        }
     }
 
     static mapping = {

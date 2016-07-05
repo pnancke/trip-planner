@@ -149,4 +149,14 @@ class HomeControllerIntegrationSpec extends Specification {
         then:
         response.content.toString().equals('{"success":false,"error":"Error: Unable to generate route, given places are equal."}')
     }
+
+    void "get route contains wiki link"() {
+        when:
+        controller.getRoute(LEIPZIG, TAUCHA, 0, LANG_DE, SEARCH_AREA)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().contains("de:Taucha#Bauwerke")
+    }
 }

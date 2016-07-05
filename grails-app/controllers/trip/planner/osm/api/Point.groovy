@@ -4,6 +4,7 @@ class Point {
 
     Double lat
     Double lon
+    String label
 
     Point(Double lat, Double lon) {
         Objects.requireNonNull(lat)
@@ -11,6 +12,15 @@ class Point {
 
         this.lat = lat
         this.lon = lon
+    }
+
+    Point(Double lat, Double lon, String label) {
+        Objects.requireNonNull(lat)
+        Objects.requireNonNull(lon)
+
+        this.lat = lat
+        this.lon = lon
+        this.label = label
     }
 
     public String toStringDarrinWardFormat() {

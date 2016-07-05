@@ -14,7 +14,7 @@ class HomeFunctionalSpec extends GebSpec {
     public static final String LEIPZIG = "Leipzig"
     public static final String BERLIN = "Berlin"
     public static final String NEW_YORK = "New York"
-    public static final String LEIPZIG_FULLNAME = "Leipzig, Leipzig Deutschland"
+    public static final String LEIPZIG_FULLNAME = "Leipzig Deutschland"
 
     def setup() {
     }
@@ -61,7 +61,7 @@ class HomeFunctionalSpec extends GebSpec {
         page.submitButton.click()
 
         then: "spinner stops spinning"
-        assert waitFor{!page.spinnerExists()}
+        assert waitFor(wait: 150){!page.spinnerExists()}
     }
 
     void "test generate route no route exists"() {

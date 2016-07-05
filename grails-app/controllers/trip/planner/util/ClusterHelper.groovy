@@ -2,6 +2,7 @@ package trip.planner.util
 
 import de.lmu.ifi.dbs.elki.data.Cluster
 import de.lmu.ifi.dbs.elki.data.DoubleVector
+import de.lmu.ifi.dbs.elki.data.LabelList
 import de.lmu.ifi.dbs.elki.data.NumberVector
 import de.lmu.ifi.dbs.elki.data.model.KMeansModel
 import de.lmu.ifi.dbs.elki.data.type.TypeUtil
@@ -49,20 +50,21 @@ class ClusterHelper {
     }
 
     public static List<Point> convert(List<PointOfInterest> pointOfInterests) {
-        pointOfInterests.stream().map({ poi -> new Point(poi.point.x, poi.point.y) }).collect(Collectors.toList())
+        pointOfInterests.stream().map({ poi -> new Point(poi.point.x, poi.point.y, poi.getWikipedia()) }).collect(Collectors.toList())
     }
 
     public static List<PointCluster> convert(Pair<Database, List<Cluster<KMeansModel>>> pair) {
         List<PointCluster> pointClusters = new ArrayList<PointCluster>()
         Database db = pair.getA()
-        Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD);
+        Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD)
+        Relation<LabelList> labels = db.getRelation(TypeUtil.STRING)
         List<Cluster<KMeansModel>> kMeansModelCluster = pair.getB()
         kMeansModelCluster.each { Cluster<KMeansModel> clu ->
             def clusterCenter = clu.getModel().getPrototype()
             def cluster = new PointCluster(new Point(clusterCenter.get(0), clusterCenter.get(1)))
             for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
                 DoubleVector v = rel.get(it) as DoubleVector
-                cluster.addPoint(v.getValues())
+                cluster.addPoint(v.getValues(), labels.get(it) as String)
             }
             pointClusters.add(cluster)
         }
@@ -83,7 +85,7 @@ class ClusterHelper {
 
     private static List<PointCluster> splitClusters(List<PointCluster> filteredClusters) {
         List<PointCluster> filteredClustersByRange = new ArrayList<PointCluster>()
-        Queue<PointCluster> queue = new LinkedList<PointCluster>(filteredClusters);
+        Queue<PointCluster> queue = new LinkedList<PointCluster>(filteredClusters)
         while (!queue.isEmpty()) {
             PointCluster cluster = queue.remove()
             if (cluster.clusterRange > MAX_DISTANCE_TO_CLUSTER_CENTER_IN_KILOMETRES) {
