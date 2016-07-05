@@ -1,9 +1,12 @@
 package trip.planner
 
+import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.GeometryFactory
+import com.vividsolutions.jts.geom.LineString
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.hibernate.SQLQuery
-import trip.planner.osm.api.Circle
 import trip.planner.osm.api.Pair
 import trip.planner.osm.api.Point
 import trip.planner.osm.api.Polygon
@@ -44,53 +47,18 @@ class PointOfInterestService {
     }
 
     public static Pair<String, String> generatePolygonQueryPair(List<Point> route, Double area) {
-        Double circleArea = area
         if (route.isEmpty()) {
             return new Pair<>("", "")
         }
-        Circle beginFilter = new Circle(route.first(), circleArea)
-        Circle endFilter = new Circle(route.last(), circleArea)
-        List<Point> under = shifting(route, -area, endFilter, beginFilter)
-        List<Point> upper = shifting(route, area, endFilter, beginFilter)
-        List<Point> polygonShape = new ArrayList<>()
-        if (!under.isEmpty() && !upper.isEmpty()) {
-            log.info "generate route area with circles"
-            Collections.reverse(upper)
-
-            polygonShape.addAll(under)
-            polygonShape.addAll(Circle.generateOpenCircle(under.last(), upper.first(), route.last(), circleArea))
-            polygonShape.addAll(upper)
-            polygonShape.addAll(Circle.generateOpenCircle(under.first(), upper.last(), route.first(), circleArea))
-        } else {
-            log.info "generate route area without circles"
-            List<Point> underNoCircle = shifting(route, -area, null, null)
-            List<Point> upperNoCircle = shifting(route, area, null, null)
-            Collections.reverse(upperNoCircle)
-
-            polygonShape.addAll(underNoCircle)
-            polygonShape.add(new Point(underNoCircle.last().lat, upperNoCircle.first().lon))
-            polygonShape.addAll(upperNoCircle)
-            polygonShape.add(new Point(upperNoCircle.last().lat, underNoCircle.first().lon))
-        }
-        polygonShape.add(polygonShape.get(0))
-
-        new Pair<>(CONTAINS_STATEMENT, new Polygon(polygonShape).toString())
-    }
-
-    private static List<Point> shifting(List<Point> route, double area, Circle endFilter, Circle beginFilter) {
-        if (Objects.nonNull(endFilter) && Objects.nonNull(beginFilter)) {
-            return area < 0 ?
-                    route.stream().filter { !endFilter.contains(it) }
-                            .map { new Point(it.lat + area, it.lon + area) }
-                            .filter { !beginFilter.contains(it) }.filter { !endFilter.contains(it) }
-                            .collect(Collectors.toList())
-                    : route.stream().filter { !beginFilter.contains(it) }
-                    .map { new Point(it.lat + area, it.lon + area) }
-                    .filter { !beginFilter.contains(it) }.filter { !endFilter.contains(it) }
-                    .collect(Collectors.toList())
-        } else {
-            return route.stream().map { new Point(it.lat + area, it.lon + area) }.collect(Collectors.toList())
-        }
+        GeometryFactory factory = new GeometryFactory();
+        List<Coordinate> coordList = route.stream().map { p -> new Coordinate(p.lat, p.lon) }.collect(Collectors.toList())
+        Coordinate[] coordinates = coordList.toArray()
+        LineString lineString = factory.createLineString(coordinates);
+        Geometry buffer = lineString.buffer(area)
+        List<Point> bufferShape = buffer.getCoordinates().toList().stream().map { c -> new Point(c.x, c.y) }
+                .collect(Collectors.toList())
+        bufferShape.add(bufferShape.first())
+        new Pair<>(CONTAINS_STATEMENT, new Polygon(bufferShape).toString())
     }
 
     public static List<PointOfInterest> containsPolygon(String query, String polygon) {
