@@ -11,7 +11,8 @@ import spock.lang.Specification
 import trip.planner.osm.api.Point
 import trip.planner.osm.api.Polygon
 
-import static trip.planner.FileReader.*
+import static trip.planner.FileReader.LE_MUNICH_ROUTE
+import static trip.planner.FileReader.extractRoute
 import static trip.planner.PointOfInterestService.*
 
 @TestFor(HomeController)
@@ -20,12 +21,12 @@ import static trip.planner.PointOfInterestService.*
 class PointOfInterestIntegrationSpec extends Specification {
 
     private static final int SIZE_OF_GERMANY = 16919
-    private static final int SIZE_OF_POIS_TO_MUNICH = 236
+    private static final int SIZE_OF_POIS_TO_MUNICH = 404
     private static final Point LEIPZIG = new Point(51.3, 12.38)
     private static final Point MARKKLEEBERG = new Point(51.276857, 12.372894)
     private static final Point TAUCHA = new Point(51.381478, 12.482528)
-    private static final int SIZE_OF_POIS_IN_LE_MBERG_TAUCHA_ROUTE = 5
-    private static final int SIZE_OF_POIS_IN_LE_TAUCHA = 4
+    private static final int SIZE_OF_POIS_IN_LE_MBERG_TAUCHA_ROUTE = 51
+    private static final int SIZE_OF_POIS_IN_LE_TAUCHA = 44
     private static final Double SEARCH_AREA = 0.06
 
     @Autowired
@@ -47,16 +48,6 @@ class PointOfInterestIntegrationSpec extends Specification {
         then:
         !pois.isEmpty()
         pois.size() == SIZE_OF_GERMANY
-    }
-
-    void "complex poi request works"() {
-        when:
-        List<PointOfInterest> pois = containsPolygon(CONTAINS_STATEMENT,
-                new Polygon(extractRoute(MUNICH_POLYGON)).toString())
-
-        then:
-        !pois.isEmpty()
-        pois.size() == SIZE_OF_POIS_TO_MUNICH
     }
 
     void "found pois from route works"() {
