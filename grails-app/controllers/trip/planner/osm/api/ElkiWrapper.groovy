@@ -22,20 +22,20 @@ class ElkiWrapper {
                                                                            int maxKMeansIterations) {
         LoggingConfiguration.setStatistics()
         double[][] data = convert(points)
-        String[] labels = extractWikiLabels(points)
-        StaticArrayDatabase db = createDatabase(data, labels)
+        String[] poiIds = extractPoiIds(points)
+        StaticArrayDatabase db = createDatabase(data, poiIds)
         Clustering<KMeansModel> c = createKMeans(kMeansPartitions, maxKMeansIterations).run(db)
         ArrayList<Cluster<KMeansModel>> clusters = c.getAllClusters()
         def pair = new Pair<Database, ArrayList<Cluster<KMeansModel>>>(db, clusters)
         pair
     }
 
-    static String[] extractWikiLabels(List<Point> points) {
-        def strings = new String[points.size()]
+    static String[] extractPoiIds(List<Point> points) {
+        def poiIds = new String[points.size()]
         points.eachWithIndex { point, i ->
-            strings[i] = point.label
+            poiIds[i] = point.getPoiId()
         }
-        strings
+        poiIds
     }
 
     private static KMeansLloyd<NumberVector> createKMeans(int kMeansPartitions, int maxKMeansIterations) {

@@ -26,6 +26,7 @@ class HomeController {
     def index() {}
 
     def getRoute(String start, String destination, int additionalTravelTime, String lang, Double searchArea) {
+        ActiveTimer timer = new ActiveTimer()
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
 
@@ -62,6 +63,7 @@ class HomeController {
                         pois poiCoordinates
                         startCoordinates startCoords
                     }
+                    timer.stopAndLog(log, "Complete Request")
                     render json.toString()
                     return
                 } catch (RestClientException e) {
@@ -70,6 +72,7 @@ class HomeController {
                 }
             }
             render createErrorMessage("Error: Unable to generate route. Please try again later!")
+            timer.stopAndLog(log, "Complete Request")
         }
     }
 

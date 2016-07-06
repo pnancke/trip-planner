@@ -4,7 +4,9 @@ class Point {
 
     Double lat
     Double lon
-    String label
+    String name
+    String wiki
+    String poiId
 
     Point(Double lat, Double lon) {
         Objects.requireNonNull(lat)
@@ -14,13 +16,39 @@ class Point {
         this.lon = lon
     }
 
-    Point(Double lat, Double lon, String label) {
+    Point(Double lat, Double lon, Long poiId) {
         Objects.requireNonNull(lat)
         Objects.requireNonNull(lon)
+        Objects.requireNonNull(poiId)
 
         this.lat = lat
         this.lon = lon
-        this.label = label
+        this.poiId = poiId
+    }
+
+    Point(Double lat, Double lon, Long poiId, String name, String wiki) {
+        Objects.requireNonNull(lat)
+        Objects.requireNonNull(lon)
+        Objects.requireNonNull(poiId)
+        Objects.requireNonNull(name)
+
+        this.lat = lat
+        this.lon = lon
+        this.poiId = poiId
+        this.name = name
+        if (wiki == null) {
+            this.wiki = ""
+        } else {
+            this.wiki = wiki
+        }
+    }
+
+    void setName(String name) {
+        this.name = name
+    }
+
+    void setWiki(String wiki) {
+        this.wiki = wiki
     }
 
     public String toStringDarrinWardFormat() {

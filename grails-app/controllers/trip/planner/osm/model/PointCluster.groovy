@@ -19,8 +19,8 @@ class PointCluster {
         this.clusterRange = 0
     }
 
-    public void addPoint(double[] point, String label) {
-        this.points.add(new Point(point[0], point[1], label))
+    public void addPoint(double[] point, Long poiId, String name, String wiki) {
+        this.points.add(new Point(point[0], point[1], poiId, name, wiki))
         calculateClusterRange()
     }
 
