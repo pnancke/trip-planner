@@ -116,7 +116,7 @@ class PointOfInterest {
         man_made nullable: true
         military nullable: true
         motorcar nullable: true
-        name nullable: true
+        name nullable: false
         osm_natural nullable: true
         office nullable: true
         oneway nullable: true
