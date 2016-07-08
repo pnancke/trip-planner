@@ -50,7 +50,7 @@ class ClusterHelper {
     }
 
     public static List<Point> convert(List<PointOfInterest> pointOfInterests) {
-        pointOfInterests.stream().map({ poi -> new Point(poi.point.x, poi.point.y, poi.getWikipedia()) }).collect(Collectors.toList())
+        pointOfInterests.stream().map({ poi -> new Point(poi.point.x, poi.point.y, poi.poiId) }).collect(Collectors.toList())
     }
 
     public static List<PointCluster> convert(Pair<Database, List<Cluster<KMeansModel>>> pair) {
@@ -64,7 +64,11 @@ class ClusterHelper {
             def cluster = new PointCluster(new Point(clusterCenter.get(0), clusterCenter.get(1)))
             for (DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
                 DoubleVector v = rel.get(it) as DoubleVector
-                cluster.addPoint(v.getValues(), labels.get(it) as String)
+                def poi = PointOfInterest.findByPoiId(labels.get(it) as Integer)
+
+                def name = poi.name
+                def wikipedia = poi.getWikipedia()
+                cluster.addPoint(v.getValues(), poi.poiId, name, wikipedia)
             }
             pointClusters.add(cluster)
         }

@@ -51,20 +51,24 @@ function init() {
 }
 
 function createPopup(feature) {
-    if (feature.attributes.description) {
-        var label = feature.attributes.description.split(":");
-        feature.popup = new OpenLayers.Popup.FramedCloud("popup",
-            feature.geometry.getBounds().getCenterLonLat(),
-            null,
-            '<div class="wikilink"><a href="https://' + label[0] + '.wikipedia.org/wiki/' + label[1] + '" target="_blank">' + label[1] + '</a></div>',
-            null,
-            false,
-            function () {
-                controls['selector'].unselectAll();
-            }
-        );
-        map.addPopup(feature.popup);
+    var labelHtml;
+    if (feature.attributes.wiki) {
+        var label = feature.attributes.wiki.split(":");
+        labelHtml = '<div class="wikilink"><a href="https://' + label[0] + '.wikipedia.org/wiki/' + label[1] + '" target="_blank">' + label[1] + '</a></div>'
+    } else {
+        labelHtml = '<div class="name">' + feature.attributes.name + '</div>'
     }
+    feature.popup = new OpenLayers.Popup.FramedCloud("popup",
+        feature.geometry.getBounds().getCenterLonLat(),
+        null,
+        labelHtml,
+        null,
+        false,
+        function () {
+            controls['selector'].unselectAll();
+        }
+    );
+    map.addPopup(feature.popup);
 }
 
 function destroyPopup(feature) {
@@ -92,10 +96,10 @@ function drawLine(arrayOfPoints, startCoordinates) {
     ), 15);
 }
 
-function createVector(lon, lat, label, graphic) {
+function createWikiVector(lon, lat, wiki, graphic) {
     return new OpenLayers.Feature.Vector(
         new OpenLayers.Geometry.Point(lon, lat).transform(epsg4326, projectTo),
-        {description: label},
+        {wiki: wiki},
         {
             externalGraphic: graphic,
             graphicHeight: 25,
@@ -105,19 +109,38 @@ function createVector(lon, lat, label, graphic) {
         }
     );
 }
-function addMarker(lat, lon, label) {
-    var feature;
-    if (label) {
-        feature = createVector(lon, lat, label, '/assets/marker.png');
-    } else {
-        feature = createVector(lon, lat, label, '/assets/marker-blue.png');
-    }
+
+function createNameVector(lon, lat, name, graphic) {
+    return new OpenLayers.Feature.Vector(
+        new OpenLayers.Geometry.Point(lon, lat).transform(epsg4326, projectTo),
+        {name: name},
+        {
+            externalGraphic: graphic,
+            graphicHeight: 25,
+            graphicWidth: 21,
+            graphicXOffset: -12,
+            graphicYOffset: -25
+        }
+    );
+}
+
+function addWikiMarker(lat, lon, wiki) {
+    var feature = createWikiVector(lon, lat, wiki, '/assets/marker.png');
+    vectorLayer.addFeatures(feature);
+}
+
+function addNameMarker(lat, lon, name) {
+    var feature = createNameVector(lon, lat, name, '/assets/marker-blue.png');
     vectorLayer.addFeatures(feature);
 }
 
 function addMarkers(coordinates) {
     for (var i = 0; i < coordinates.length; i++) {
-        addMarker(coordinates[i].lat, coordinates[i].lon, coordinates[i].label);
+        if (coordinates[i].wiki) {
+            addWikiMarker(coordinates[i].lat, coordinates[i].lon, coordinates[i].wiki);
+        } else {
+            addNameMarker(coordinates[i].lat, coordinates[i].lon, coordinates[i].name);
+        }
     }
 }
 function clearMap() {
