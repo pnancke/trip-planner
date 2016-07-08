@@ -54,7 +54,7 @@ else
     echo -e ${RED}FAIL
 fi
 
-echo -n -e "${NORMAL}Filter OSM nodes...\t\t\t"
+echo -n -e "${NORMAL}Convert OSM nodes to CSV...\t\t"
 bin/osmconvert64 ${FILE} --csv="@id @lat @lon @version @changeset access addr_housename addr_housenumber addr_interpolation admin_level aerialway aeroway amenity area barrier bicycle brand bridge boundary building capital construction covered culvert cutting denomination disused ele embankment foot generator_source harbour highway historic horse intermittent junction landuse layer leisure ship_lock man_made military motorcar name osm_natural office oneway operator place poi population power power_source public_transport railway ref religion route service shop sport surface toll tourism tower_type tunnel water waterway wetland width wikipedia wood" -o=${CSV_FILE}  --csv-separator=,
 if [ $? -eq 0 ]; then
     echo -e ${GREEN}OK
@@ -90,6 +90,23 @@ else
     echo -e ${RED}FAIL
 fi
 
+echo -n -e "${NORMAL}Creating trigger...\t\t\t"
+sudo mysql trip_planner -e "delimiter //
+CREATE TRIGGER point_of_interest_name_not_empty BEFORE INSERT ON point_of_interest FOR EACH ROW
+BEGIN
+        IF NEW.name = '' THEN
+                SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Blank value on point_of_interest.name';
+        END IF;
+END;//
+delimiter ;
+"
+if [ $? -eq 0 ]; then
+    echo -e ${GREEN}OK
+else
+    echo -e ${RED}FAIL
+fi
+
+
 cp ${CSV_FILE} tmp/inserts.sql
 echo -n -e "${NORMAL}Creating SQL statements...\t\t"
 # replace empty CSV value with NULL
@@ -104,12 +121,14 @@ sed 's/[^,][^,]*/"&"/g' -i tmp/inserts.sql
 sed 's/,,/,NULL,NULL,/g' -i tmp/inserts.sql
 # replace ,, with ,
 sed 's/,,/,/g' -i tmp/inserts.sql
-# add INSERT INTO point_of_interest VALUES (NULL, before each line
-sed 's/^/INSERT INTO point_of_interest VALUES (NULL,/' -i tmp/inserts.sql
+# add INSERT IGNORE INTO point_of_interest VALUES (NULL, before each line
+sed 's/^/INSERT IGNORE INTO point_of_interest VALUES (NULL,/' -i tmp/inserts.sql
 # add ); at the end of each line
 sed 's/$/);/' -i tmp/inserts.sql
 # replace ,); with );
 sed 's/,);/);/g' -i tmp/inserts.sql
+# replace "NULL" with ""
+sed 's/"NULL"/""/g' -i tmp/inserts.sql
 
 # Create Point(lat lon) from "lat", "lon"
 sed 's/,"/,ST_PointFromText("POINT(/2' -i tmp/inserts.sql
@@ -124,7 +143,7 @@ else
 fi
 
 echo -n -e "${NORMAL}Executing SQL statements...\t\t"
-sudo mysql trip_planner < tmp/inserts.sql 
+sudo mysql trip_planner -f < tmp/inserts.sql
 if [ $? -eq 0 ]; then
     echo -e ${GREEN}OK
 else
