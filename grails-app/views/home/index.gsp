@@ -37,10 +37,15 @@
     }
 
     function drawRoute() {
-        getRoute($('#location-search-start').val(), $('#location-search-destination').val(), $('#search-area-range').val());
+        var waypoints = [];
+        $(".location-search-waypoint-input-field").each(function () {
+            waypoints.push($(this).val().replace(',', ''));
+        });
+        getRoute($('#location-search-start').val(), $('#location-search-destination').val(), waypoints.join(","),
+                $('#search-area-range').val());
     }
 
-    function getRoute(start, destination, searchArea) {
+    function getRoute(start, destination, waypoints, searchArea) {
         var ONE_HUNDRED_FIVETY_SECONDS = 150000;
         $.ajaxSetup({timeout: ONE_HUNDRED_FIVETY_SECONDS});
         var warningId = window.setTimeout(function () {
@@ -54,7 +59,7 @@
         $('#submit-route-button').prop('disabled', true);
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
-                + "&lang=" + userLang + "&searchArea=" + searchArea
+                + "&waypoints=" + waypoints + "&lang=" + userLang + "&searchArea=" + searchArea
                 , {}, function (data) {
         }).done(function (response) {
             window.clearTimeout(warningId);
@@ -90,11 +95,13 @@
 </g:if>
 <div class="searchTown">
     <form class="form-wrapper cf" action="javascript:void(0);">
-        Please insert and select the start and destination locations below.
-        <input id="location-search-start" type="text" placeholder="Starting point" required>
+        <input id="location-search-start" class="location-search-input-field" type="text" placeholder="Starting point"
+               required>
         <br/><br/>
+        <span id="waypointInputFields"></span>
         <input id="location-search-destination" type="text" placeholder="Destination" required>
         <br/><br/>
+        <button type="button" onclick="addWaypointInput()" class="standalone-button">Add waypoint</button>
         <br/><br/><br/>
         <label for="search-area-range">Diameter of search area:</label><span id="area-range">16</span> km
         <input type="range" id="search-area-range" min="8" max="40" value="16" step="8"

@@ -4,6 +4,7 @@ var clusterCenterLayer;
 var vectorLayer;
 var epsg4326;
 var projectTo;
+var countBox = 0;
 var lineStyle = {
     strokeColor: '#0000ff',
     strokeOpacity: 0.5,
@@ -248,5 +249,24 @@ function startSpinner() {
 }
 function stopSpinner() {
     spinner.stop();
+}
+
+function addWaypointInput() {
+    var boxes = document.getElementById('waypointInputFields');
+    var new_input = document.createElement('input');
+    new_input.setAttribute('id', 'waypointInputField' + countBox);
+    new_input.setAttribute('class', 'location-search-waypoint-input-field location-search-input-field');
+    new_input.setAttribute('placeholder', 'Waypoint');
+    new_input.setAttribute('type', 'text');
+    new_input.required = true;
+    boxes.appendChild(new_input);
+    countBox += 1;
+
+    $('.location-search-input-field').autocomplete({
+        source: function (request, response) {
+            getAutocompleteData(request, response);
+        },
+        minLength: 2
+    });
 }
 

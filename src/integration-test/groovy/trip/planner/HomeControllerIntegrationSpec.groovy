@@ -18,6 +18,8 @@ class HomeControllerIntegrationSpec extends Specification {
 
     private static final String LEIPZIG = "Leipzig"
     private static final String TAUCHA = "Taucha"
+    private static final String WURZEN = "Wurzen"
+    private static final String BRANDIS = "Brandis"
     private static final String NOT_EXISTING_CITY_1 = "not-existing-15451245"
     private static final String NOT_EXISTING_CITY_2 = "not-existing-10092454"
     private static final String LANG_DE = "de"
@@ -25,6 +27,7 @@ class HomeControllerIntegrationSpec extends Specification {
     private static final String EILENBURG = "Eilenburg"
     private static final Double SEARCH_AREA = 16.0
     private static final int TOO_HIGH_SEARCH_AREA = 101
+    private static final String NO_WAYPOINT = ""
 
     @Autowired
     WebApplicationContext ctx
@@ -39,7 +42,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route returns OK"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -49,7 +52,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route starts with start point"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -60,7 +63,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route starts with success true"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -70,7 +73,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route contains start coordinates"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -81,7 +84,7 @@ class HomeControllerIntegrationSpec extends Specification {
     @Ignore
     void "get route with larger route works"() {
         when:
-        controller.getRoute(LEIPZIG, BERLIN, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, BERLIN, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
         String content = controller.response.content.toString()
 
         then:
@@ -92,7 +95,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route contains cluster range"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -102,7 +105,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route with too high search area fails"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, TOO_HIGH_SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, TOO_HIGH_SEARCH_AREA)
 
         def response = controller.response
 
@@ -112,7 +115,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route with not existing start place"() {
         when:
-        controller.getRoute(NOT_EXISTING_CITY_1, LEIPZIG, LANG_DE, SEARCH_AREA)
+        controller.getRoute(NOT_EXISTING_CITY_1, LEIPZIG, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -123,7 +126,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route with not existing destination place"() {
         when:
-        controller.getRoute(LEIPZIG, NOT_EXISTING_CITY_1, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, NOT_EXISTING_CITY_1, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -134,7 +137,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route with not existing start and destination place"() {
         when:
-        controller.getRoute(NOT_EXISTING_CITY_1, NOT_EXISTING_CITY_2, LANG_DE, SEARCH_AREA)
+        controller.getRoute(NOT_EXISTING_CITY_1, NOT_EXISTING_CITY_2, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -145,7 +148,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route with equal start and destination place"() {
         when:
-        controller.getRoute(LEIPZIG, LEIPZIG, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, LEIPZIG, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -155,7 +158,7 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route contains wiki link"() {
         when:
-        controller.getRoute(LEIPZIG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
@@ -165,11 +168,41 @@ class HomeControllerIntegrationSpec extends Specification {
 
     void "get route contains wiki link of small building"() {
         when:
-        controller.getRoute(EILENBURG, TAUCHA, LANG_DE, SEARCH_AREA)
+        controller.getRoute(EILENBURG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
 
         def response = controller.response
 
         then:
         response.content.toString().contains("de:Taucha#Bauwerke")
+    }
+
+    void "get route uses custom waypoints"() {
+        when:
+        controller.getRoute(LEIPZIG, TAUCHA, WURZEN, LANG_DE, SEARCH_AREA)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().contains('{"lat":51.3709574,"wiki":null,"lon":12.7410574,"poiId":null,"name":null}')
+    }
+
+    void "get route uses custom waypoints even without POIs in custom location"() {
+        when:
+        controller.getRoute(LEIPZIG, TAUCHA, BRANDIS, LANG_DE, SEARCH_AREA)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().contains('{"lat":51.3346604,"wiki":null,"lon":12.6089036,"poiId":null,"name":null}')
+    }
+
+    void "get route contains destination point"() {
+        when:
+        controller.getRoute(LEIPZIG, TAUCHA, NO_WAYPOINT, LANG_DE, SEARCH_AREA)
+
+        def response = controller.response
+
+        then:
+        response.content.toString().contains('{"lat":51.379958,"wiki":null,"lon":12.493655,"poiId":null,"name":null}')
     }
 }
