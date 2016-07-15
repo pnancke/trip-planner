@@ -26,4 +26,4 @@ before_script:
 
 script:
 - grails test-app -unit --stacktrace
-- grails test-app trip.planner.HomeControllerIntegrationSpec -integration
+- travis_wait 30 grails test-app trip.planner.HomeControllerIntegrationSpec -integration
