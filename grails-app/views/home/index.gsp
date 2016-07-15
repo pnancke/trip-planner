@@ -37,19 +37,17 @@
     }
 
     function drawRoute() {
-        var secondsInAnHour = 3600;
-        getRoute($('#location-search-start').val(), $('#location-search-destination').val(),
-                $('#additional-time-selector').val() * secondsInAnHour, $('#search-area-range').val());
+        getRoute($('#location-search-start').val(), $('#location-search-destination').val(), $('#search-area-range').val());
     }
 
-    function getRoute(start, destination, additionalTravelTime, searchArea) {
+    function getRoute(start, destination, searchArea) {
         var userLang = navigator.language || navigator.userLanguage;
         $('#submit-route-button').prop('disabled', true);
         startSpinner();
         $.get('${g.createLink(controller: "home", action: "getRoute")}?start=' + start + '&destination=' + destination
-                + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang + "&searchArea=" + searchArea
+                + "&lang=" + userLang + "&searchArea=" + searchArea
                 , {}, function (data) {
-        }).done(function (response) {
+                }).done(function (response) {
             clearMap();
             $('#submit-route-button').prop('disabled', false);
             stopSpinner();
@@ -86,14 +84,6 @@
         <br/><br/>
         <input id="location-search-destination" type="text" placeholder="Destination" required>
         <br/><br/>
-        <label for="additional-time-selector">Additional travel time without retention (hours):<br/></label><br/><input
-            type="number"
-            id="additional-time-selector"
-            name="additional-time-selector"
-            class="additional-time-selector"
-            value="0.5"
-            min="0.1"
-            step="0.1">
         <br/><br/><br/>
         <label for="search-area-range">Diameter of search area:</label><span id="area-range">16</span> km
         <input type="range" id="search-area-range" min="8" max="40" value="16" step="8"

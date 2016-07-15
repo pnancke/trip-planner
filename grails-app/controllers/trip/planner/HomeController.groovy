@@ -25,7 +25,7 @@ class HomeController {
 
     def index() {}
 
-    def getRoute(String start, String destination, int additionalTravelTime, String lang, Double searchArea) {
+    def getRoute(String start, String destination, String lang, Double searchArea) {
         ActiveTimer timer = new ActiveTimer()
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
