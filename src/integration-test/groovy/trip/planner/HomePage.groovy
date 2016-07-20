@@ -34,11 +34,6 @@ class HomePage extends Page {
         autoComplNav.children()*.text()
     }
 
-    void clickFirstAutocomplete(Navigator autoComplNav){
-        waitFor(10) { autoComplNav.displayed }
-        autoComplNav.click()
-    }
-
     boolean spinnerExists() {
         spinner
     }
