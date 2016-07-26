@@ -25,7 +25,7 @@ class HomeController {
 
     def index() {}
 
-    def getRoute(String start, String destination, int additionalTravelTime, String lang, Double searchArea) {
+    def getRoute(String start, String destination, String waypoints, String lang, Double searchArea) {
         ActiveTimer timer = new ActiveTimer()
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
@@ -50,16 +50,24 @@ class HomeController {
 
             for (int i = 1; i < 4; i++) {
                 try {
-                    RouteSegment routeCoordinates = getRouteCoordinates(startPoint, destPoint)
+                    List<PointCluster> routeWithoutPois = new ArrayList<PointCluster>()
+                    routeWithoutPois.add(new PointCluster(startPoint))
+                    List<String> waypointsSplitted = waypoints.tokenize(',')
+                    waypointsSplitted.each { routeWithoutPois.add(new PointCluster(extractCoordinates(it))) }
+                    routeWithoutPois.add(new PointCluster(destPoint))
 
-                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(routeCoordinates.route, area)
-                    def startCoords = [startPoint.lat, startPoint.lon]
-                    WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint)
+                    WaypointRoute routeCoordinates = generateWaypointRoute(routeWithoutPois, startPoint, destPoint)
+                    List<Point> routePoints = new ArrayList<>()
+                    routeCoordinates.routeSegments.each { routePoints.addAll(it.route) }
+                    List<PointCluster> poiCoordinates = getPOIsInRouteArea(routePoints, area)
+                    waypointsSplitted.each { poiCoordinates.add(new PointCluster(extractCoordinates(it))) }
+                    List<Point> completeRoute = generateRoute(poiCoordinates, startPoint, destPoint)
+                    List<Double> startCoords = [startPoint.lat, startPoint.lon]
 
                     def json = new JsonBuilder()
                     json {
                         success true
-                        route waypointRoute.generateRoute()
+                        route completeRoute
                         pois poiCoordinates
                         startCoordinates startCoords
                     }
@@ -76,8 +84,17 @@ class HomeController {
         }
     }
 
-    private static WaypointRoute generateWaypointRoute(List<PointCluster> poiCoordinates, Point start) {
-        Collections.sort(poiCoordinates, new SortByClusterCenter(start));
+    private static List<Point> generateRoute(List<PointCluster> poiCoordinates, Point startPoint, Point destPoint) {
+        WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint, destPoint)
+        List<Point> route = waypointRoute.generateRoute()
+        RouteSegment coordinates = getRouteCoordinates(route.get(route.size() - 1)
+                , destPoint)
+        route.addAll(coordinates.route)
+        route
+    }
+
+    private static WaypointRoute generateWaypointRoute(List<PointCluster> poiCoordinates, Point start, Point dest) {
+        Collections.sort(poiCoordinates, new SortByClusterCenter(start))
         WaypointRoute waypointRoute = new WaypointRoute(poiCoordinates.clusterCenter)
         List<RouteSegment> routeSegments = waypointRoute.getRouteSegments()
         ActiveTimer timer = new ActiveTimer()

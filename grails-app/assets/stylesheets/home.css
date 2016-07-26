@@ -46,10 +46,10 @@
     overflow: visible;
     position: relative;
     border: 0;
-    padding: 0;
+    padding-left: 10px;
+    padding-right: 10px;
     cursor: pointer;
     height: 40px;
-    width: 110px;
     font: bold 15px/40px 'lucida sans', 'trebuchet MS', 'Tahoma';
     color: #fff;
     text-transform: uppercase;
