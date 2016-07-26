@@ -43,6 +43,15 @@
     }
 
     function getRoute(start, destination, additionalTravelTime, searchArea) {
+        var ONE_HUNDRED_FIVETY_SECONDS = 150000;
+        $.ajaxSetup({timeout: ONE_HUNDRED_FIVETY_SECONDS});
+        var warningId = window.setTimeout(function () {
+            clearMap();
+            $('#submit-route-button').prop('disabled', false);
+            stopSpinner();
+            alert("The server didn't responded after 150s. Please try again later or try a smaller route.");
+        }, ONE_HUNDRED_FIVETY_SECONDS);
+
         var userLang = navigator.language || navigator.userLanguage;
         $('#submit-route-button').prop('disabled', true);
         startSpinner();
@@ -50,6 +59,7 @@
                 + '&additionalTravelTime=' + additionalTravelTime + "&lang=" + userLang + "&searchArea=" + searchArea
                 , {}, function (data) {
         }).done(function (response) {
+            window.clearTimeout(warningId);
             clearMap();
             $('#submit-route-button').prop('disabled', false);
             stopSpinner();
