@@ -163,7 +163,7 @@ class HomeControllerIntegrationSpec extends Specification {
         def response = controller.response
 
         then:
-        response.content.toString().contains("de:Schillerhaus (Leipzig)")
+        response.content.toString().contains('wiki":"de:')
     }
 
     void "get route contains wiki link of small building"() {
