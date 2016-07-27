@@ -55,25 +55,23 @@ class HomeFunctionalSpec extends GebSpec {
         when: "Valid cities are given"
         HomePage page = browser.to HomePage
         page.enterCity(page.startSearchField, LEIPZIG)
-        page.clickFirstAutocomplete(page.startDropdown)
         page.enterCity(page.destinationSearchField, BERLIN)
-        page.clickFirstAutocomplete(page.destinationDropdown)
         page.submitButton.click()
 
         then: "spinner stops spinning"
-        assert waitFor(wait: 150){!page.spinnerExists()}
+        assert waitFor(155){
+            !page.spinnerExists()
+        }
     }
 
     void "test generate route no route exists"() {
         when: "Unconnectable cities are given"
         HomePage page = browser.to HomePage
         page.enterCity(page.startSearchField, LEIPZIG)
-        page.clickFirstAutocomplete(page.startDropdown)
         page.enterCity(page.destinationSearchField, NEW_YORK)
-        page.clickFirstAutocomplete(page.destinationDropdown)
 
         then: "Alert occurs"
-        withAlert(wait: true) {
+        withAlert(wait: 151) {
             page.submitButton.click()
         }
     }
