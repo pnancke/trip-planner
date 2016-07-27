@@ -29,6 +29,9 @@ class HomeController {
         ActiveTimer timer = new ActiveTimer()
         Point startPoint = extractCoordinates(start)
         Point destPoint = extractCoordinates(destination)
+        if (waypoints == null) {
+            waypoints = ""
+        }
 
         if (startPoint == null && destPoint == null) {
             render createErrorMessage("Error: Unable to find '$start' and '$destination'!")
@@ -87,9 +90,11 @@ class HomeController {
     private static List<Point> generateRoute(List<PointCluster> poiCoordinates, Point startPoint, Point destPoint) {
         WaypointRoute waypointRoute = generateWaypointRoute(poiCoordinates, startPoint, destPoint)
         List<Point> route = waypointRoute.generateRoute()
-        RouteSegment coordinates = getRouteCoordinates(route.get(route.size() - 1)
-                , destPoint)
-        route.addAll(coordinates.route)
+        if (!route.isEmpty()) {
+            RouteSegment coordinates = getRouteCoordinates(route.get(route.size() - 1)
+                    , destPoint)
+            route.addAll(coordinates.route)
+        }
         route
     }
 
