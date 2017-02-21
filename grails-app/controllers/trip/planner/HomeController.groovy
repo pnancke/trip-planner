@@ -21,7 +21,7 @@ class HomeController {
 
     private static Log log = LogFactory.getLog(HomeController.class)
     private static final int THREAD_COUNT = 3
-    private static final Double TOO_HIGH_SEARCH_AREA = 100.0
+    private static final Double TOO_HIGH_SEARCH_AREA = 16.0
 
     def index() {}
 

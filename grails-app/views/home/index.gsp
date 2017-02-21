@@ -81,9 +81,9 @@
                     pois.push.apply(pois, poiClusters[i].points);
                     clusterCenters.push(poiClusters[i].clusterCenter);
                     var METRES_IN_KILOMETRES = 1000;
-                    drawCircle(poiClusters[i].clusterCenter.lat,
-                            poiClusters[i].clusterCenter.lon,
-                            poiClusters[i].clusterRange * METRES_IN_KILOMETRES);
+                    //drawCircle(poiClusters[i].clusterCenter.lat,
+                    //        poiClusters[i].clusterCenter.lon,
+                    //        poiClusters[i].clusterRange * METRES_IN_KILOMETRES);
                 }
                 addMarkers(pois);
             }
@@ -103,8 +103,8 @@
         <br/><br/>
         <button type="button" onclick="addWaypointInput()" class="standalone-button">Add waypoint</button>
         <br/><br/><br/>
-        <label for="search-area-range">Diameter of search area:</label><span id="area-range">16</span> km
-        <input type="range" id="search-area-range" min="8" max="40" value="16" step="8"
+        <label for="search-area-range">Diameter of search area:</label><span id="area-range">8</span> km
+        <input type="range" id="search-area-range" min="4" max="16" value="8" step="4"
                onchange="changeAreaValue(this.value)"/>
 
         <p></p><br/>
