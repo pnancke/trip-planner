@@ -126,12 +126,12 @@ function createNameVector(lon, lat, name, graphic) {
 }
 
 function addWikiMarker(lat, lon, wiki) {
-    var feature = createWikiVector(lon, lat, wiki, '/assets/marker.png');
+    var feature = createWikiVector(lon, lat, wiki, 'assets/marker.png');
     vectorLayer.addFeatures(feature);
 }
 
 function addNameMarker(lat, lon, name) {
-    var feature = createNameVector(lon, lat, name, '/assets/marker-blue.png');
+    var feature = createNameVector(lon, lat, name, 'assets/marker-blue.png');
     vectorLayer.addFeatures(feature);
 }
 
