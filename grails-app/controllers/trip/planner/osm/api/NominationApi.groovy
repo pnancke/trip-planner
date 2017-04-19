@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import trip.planner.util.ActiveTimer
 
-class NominationApi {
+class NominationApi implements Api {
 
     private static Log log = LogFactory.getLog(NominationApi.class)
     private String url
@@ -23,10 +23,7 @@ class NominationApi {
         url = "http://nominatim.openstreetmap.org/search?q=$q&format=xml&addressdetails=0&limit=1"
     }
 
-    /**
-     *
-     * @return success - if the NominationApi xmlContent is valid or not
-     */
+    @Override
     boolean doRequest() {
         ActiveTimer timer = new ActiveTimer()
 
